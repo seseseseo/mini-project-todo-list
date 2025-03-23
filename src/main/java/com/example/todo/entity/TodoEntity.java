@@ -8,8 +8,9 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
+@Setter
 @Builder
-public class Todo {
+public class TodoEntity {
     private Long id;
     private String title;
     private String description;
@@ -19,6 +20,7 @@ public class Todo {
     private LocalDate dueDate;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+
 
 
 }
