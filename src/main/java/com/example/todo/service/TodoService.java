@@ -14,7 +14,4 @@ public interface TodoService {
     List<TodoResponseDto> findAllList();
     List<TodoResponseDto> findByAuthor(String author); // 작성자
     boolean completedTodo(int id);
-
-
-
 }
