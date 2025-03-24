@@ -1,0 +1,128 @@
+<!doctype html>
+<html  xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <link rel="stylesheet" th:href="@{/css/read.css}">
+</head>
+<body>
+<div class="container">
+
+    <!-- 할일 제목 --><!-- ID 직접 확인 -->
+
+    <div  class="id-number" style="color:#888;">글 번호 : <span th:text="${todo.id} " style="color: #888;">0</span></div>
+
+    <div class="title" th:text="${todo.title}">제목</div>
+
+    <!-- 작성자, 작성시간 -->
+    <div class="meta">
+        작성자: <span th:text="${todo.author}">작성자</span> |
+        작성일시: <span th:text="${#temporals.format(todo.createdAt, 'yyyy-MM-dd HH:mm')}">2025-03-21 19:30</span>
+    </div>
+
+    <!-- 글 내용 -->
+    <div class="description" th:text="${todo.description}">
+        내용
+    </div>
+
+    <div class="meta">
+    </div>
+
+    <input type="hidden" id="todoId" th:value="${todo.id}">
+    <!-- 비밀번호 확인 -->
+    <div class="btn-group check-pass">
+        <input type="password" id="password" placeholder="비밀번호 입력" class="input-password" required>
+        <button type="button" class="btn-check" onclick="checkPassword()">비밀번호 확인</button>
+    </div>
+    <!-- 수정/삭제 버튼 그룹 -->
+    <div class="btn-group hidden" id="actionButtons" style="margin-top: 10px;">
+
+        <!-- 수정 버튼 -->
+        <a id="updateBtn" href="#" style="display: none;">
+            <button type="button" class="btn-edit">수정</button>
+        </a>
+
+        <!-- 삭제 버튼 -->
+        <form th:action="@{'/todo/' + ${todo.id} + '/delete'}" method="post" style="display: inline;">
+            <input type="hidden" name="password" id="deletePassword">
+            <button type="submit" class="btn-delete" id="deleteBtn" style="display: none;">삭제</button>
+        </form>
+
+    </div>
+        <script>
+            function checkPassword() {
+                // HTML에서 ID 값을 가져오기
+                const id = document.getElementById("todoId").value;
+                const password = document.getElementById("password").value;
+
+                console.log("비밀번호 확인 요청: ID = " + id + ", Password = " + password);
+
+                fetch(`/api/todo/check-password/${id}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({ password: password })
+                })
+                    .then(response => {
+                        console.log("응답 상태 코드: " + response.status);
+                        return response.text().then(text => {
+                            if (response.ok) {
+                                alert("비밀번호가 일치합니다.");
+                                document.getElementById("updateBtn").style.display = "inline";
+                                document.getElementById("deleteBtn").style.display = "inline";
+                                const updateUrl = `/todo/update/${id}?password=${encodeURIComponent(password)}`;
+                                document.getElementById("updateBtn").href = updateUrl;
+                                document.getElementById("deletePassword").value = password;
+                            } else {
+                                alert("비밀번호가 일치하지 않습니다: " + text);
+                            }
+                        });
+                    })
+                    .catch(error => {
+                        alert("비밀번호 검증 중 오류가 발생했습니다.");
+                        console.error(error);
+                    });
+            }
+            function deleteTodoList() {
+                const id = document.getElementById("todoId").value;
+                const password = document.getElementById("password").value;
+
+                console.log("삭제 요청: ID = " + id + ", Password = " + password);
+                fetch(`/api/todo/${id}`, {
+                    method: "DELETE",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ password: password })
+                })
+                    .then(response => {
+                        console.log("응답 상태 코드: " + response.status);
+                        return response.text().then(text => {
+                            if (response.ok) {
+                                alert("삭제되었습니다.");
+                                window.location.href = "/todo";
+                            } else {
+                                alert("삭제 실패: " + text);
+                            }
+                        });
+                    })
+                    .catch(error => {
+                        alert("삭제 중 오류가 발생했습니다.");
+                        console.error(error);
+                    });
+            }
+        </script>
+    <div class="btn-group list">
+        <a th:href="@{/todo}">
+            <button type="button" class="btn-list">목록으로 돌아가기</button>
+        </a>
+    </div>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,133 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+    text-decoration: none
+}
+a {
+    text-decoration: none;
+}
+.container {
+    width: 700px;
+    margin: 50px auto;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+}
+
+.header {
+    background-color: #b2aec9;
+    padding: 20px;
+    text-align: center;
+    color: white;
+    font-size: 20px;
+}
+.search-container {
+    width: 100%;
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 10px;
+    margin-bottom: 20px;
+}
+
+.search-container form {
+    display: flex;
+    align-items: center;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    padding: 3px;
+}
+
+.search-input {
+    border: none;
+    padding: 8px 12px;
+    border-radius: 5px;
+    outline: none;
+    font-size: 14px;
+}
+
+.search-button {
+    border: none;
+    background-color: #b2aec9;
+    color: white;
+    border-radius: 5px;
+    padding: 8px 12px;
+    cursor: pointer;
+}
+
+.input-area {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    background-color: #c3c0cc;
+    color: white;
+}
+
+.input-area input {
+    flex: 1;
+    padding: 8px;
+    margin-right: 10px;
+    border: none;
+    border-radius: 4px;
+}
+
+.input-area button {
+    background-color: #666;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.todo-list {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+}
+
+.todo-item {
+    display: grid;
+    grid-template-columns: 0.7fr 4.8fr 2fr 1fr 1.5fr;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 5px 12px 5px;
+    border-bottom: 1px solid #eee;
+}
+.text-link {
+    color: #666;
+    text-decoration: none;
+}
+.todo-item .actions {
+    justify-self: center;
+}
+.todo-item.completed {
+    color: gray;
+    text-decoration: line-through;
+
+
+}
+.title {
+    justify-self: center;
+}
+.date {
+    justify-self: center;
+}
+.author {
+    justify-content: center;
+}
+.actions button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    margin: 0 2px;
+}
+
+.actions button:hover {
+    color: #888;
+}
+
+.checkbox {
+    margin-right: 10px;
+}
+

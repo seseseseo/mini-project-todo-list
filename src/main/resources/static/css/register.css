@@ -1,0 +1,70 @@
+
+body {
+    font-family: 'Arial', sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f5f5f5;
+}
+.container {
+    width: 700px;
+
+    margin: 50px auto;
+    background-color: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+.header {
+    background-color: #a39cbd;
+    padding: 15px;
+    border-radius: 8px 8px 0 0;
+    color: white;
+    text-align: center;
+}
+form {
+    display: flex;
+    flex-direction: column;
+    padding: 20px; /* 폼 자체에 패딩 추가 */
+}
+label {
+    font-weight: bold;
+    margin-bottom: 5px;
+    display: block;
+}
+input[type="text"], input[type="password"], input[type="datetime-local"] {
+    width: 100%;
+    padding: 8px;
+    margin: 5px 0 15px 0;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+input[type="date"] {
+    appearance: none; /* 기본 브라우저 스타일 제거 */
+    -webkit-appearance: none; /* 크롬 브라우저 스타일 제거 */
+}
+input[type="date"]::-webkit-calendar-picker-indicator {
+    padding: 8px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+button {
+    width: 100%;
+    background-color: #a39cbd;
+    color: white;
+    padding: 10px;
+    margin-top: 10px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #4b47c2;
+}
+.main-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
