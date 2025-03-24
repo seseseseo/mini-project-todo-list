@@ -1,9 +1,6 @@
 package com.example.todo.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -11,10 +8,11 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
+@Setter
 @Builder
 public class TodoResponseDto {
     //password는 제외
-    private String id;
+    private int id;
     private String title;
     private String description;
     private String author;

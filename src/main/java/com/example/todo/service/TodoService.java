@@ -7,11 +7,13 @@ import com.example.todo.entity.TodoEntity;
 import java.util.List;
 
 public interface TodoService {
-    int saveTodo(TodoRequestDto requestDto);
-    int updateTodo(int id, TodoRequestDto requestDto);
-    int deleteTodo(int id, String password);
+    int registerTodoList(TodoRequestDto requestDto);
+    int updateTodoList(int id, TodoRequestDto requestDto);
+    int deleteTodoList(int id, String password);
+   // TodoResponseDto findById(int id);
     TodoResponseDto findById(int id);
     List<TodoResponseDto> findAllList();
     List<TodoResponseDto> findByAuthor(String author); // 작성자
     boolean completedTodo(int id);
+    boolean checkPassword(int id, String password);
 }

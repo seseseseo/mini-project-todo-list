@@ -4,6 +4,7 @@ import com.example.todo.dto.TodoResponseDto;
 import com.example.todo.entity.TodoEntity;
 import com.example.todo.exception.DataAccessException;
 import com.example.todo.exception.TodoNotFoundException;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.PreparedStatementCreator;
 import org.springframework.jdbc.core.RowMapper;
@@ -56,7 +57,7 @@ public class TodoRepositoryImpl implements TodoRepository {
      *   ResultSet으로부터 데이터를 추출하여 TodoEntity 객체를 생성합니다.
      */
     private RowMapper<TodoEntity> todoEntityRowMapper = (rs, rowNum) -> TodoEntity.builder()
-            .id(rs.getLong("id"))
+            .id(rs.getInt("id"))
             .title(rs.getString("title"))
             .description(rs.getString("description"))
             .author(rs.getString("author"))
@@ -71,12 +72,14 @@ public class TodoRepositoryImpl implements TodoRepository {
     /**
      * 새로운 Todo를 데이터베이스에 저장합니다.
      *
-     * @param todoEntity를 저장할 TodoEntity 객체
+     * @param todoEntity 를 저장할 TodoEntity 객체
      * @return 생성된 Todo의 ID
      */
+
     @Override
-    public int saveTodo(TodoEntity todoEntity) {
-        String sql = "INSERT INTO schedule (title, author, description, password, createdAt, updatedAt, dueDate, completed) " +
+    public int registerTodoList(TodoEntity todoEntity) {
+
+        String sql = "INSERT INTO todo (title, author, description, password, createdAt, updatedAt, dueDate, completed) " +
                 "VALUES (:title, :author, :description, :password, :createdAt, :updatedAt, :dueDate, :completed)";
 
         Map<String, Object> params = new HashMap<>();
@@ -86,17 +89,24 @@ public class TodoRepositoryImpl implements TodoRepository {
         params.put("description", todoEntity.getDescription());
         params.put("createdAt", Timestamp.valueOf(todoEntity.getCreatedAt()));
         params.put("updatedAt", Timestamp.valueOf(todoEntity.getUpdatedAt()));
-        params.put("dueDate", Timestamp.valueOf(todoEntity.getDueDate().atStartOfDay()));
+
         params.put("completed", todoEntity.isCompleted());
 
+        if (todoEntity.getDueDate() != null) {
+            params.put("dueDate", Timestamp.valueOf(todoEntity.getDueDate().atStartOfDay()));
+        } else {
+            // 만약 널일 경우, 기본 날짜를 현재 날짜로 설정하거나 NULL로 저장
+            params.put("dueDate", null);  // 또는 LocalDate.now().atStartOfDay()
+        }
         try {
             KeyHolder keyHolder = new GeneratedKeyHolder(); //insert시 자동으로 키 생성
-            namedParameterJdbcTemplate.update(sql, new MapSqlParameterSource(params), keyHolder); // 순서 무관하게 바인딩
+            namedParameterJdbcTemplate.update(sql, new MapSqlParameterSource(params), keyHolder, new String[]{"id"}); // 순서 무관하게 바인딩
             return keyHolder.getKey().intValue();
         } catch (DataAccessException e) {
             throw new DataAccessException("일정 저장 중 오류가 발생했습니다", e);
         }
     }
+
 
     /**
      *  Todo를 수정합니다.
@@ -105,7 +115,7 @@ public class TodoRepositoryImpl implements TodoRepository {
      * @return 수정된 행의 수를 리턴합니다.
      */
     @Override
-    public int updateTodo(TodoEntity todoEntity) {
+    public int updateTodoList(TodoEntity todoEntity) {
         String sql = "UPDATE TODO SET title = :title, author = :author, updatedAt = :updatedAt, " +
                 "dueDate = :dueDate, description = :description, completed = :completed WHERE id = :id";
         MapSqlParameterSource params = new MapSqlParameterSource();
@@ -132,8 +142,8 @@ public class TodoRepositoryImpl implements TodoRepository {
      * @return 삭제된 행의 수
      */
     @Override
-    public int deleteTodo(int id, String password){
-        String sql = "DELETE FROM todo WHERE id = ?";
+    public int deleteTodoList(int id, String password){
+        String sql = "DELETE FROM todo WHERE id = ?  ";
         try {
             return jdbcTemplate.update(sql, id);
         } catch (DataAccessException e) {
@@ -149,9 +159,33 @@ public class TodoRepositoryImpl implements TodoRepository {
      */
     @Override
     public Optional<TodoEntity> findById(int id)  {
-        String sql = "SELECT * FROM todo WHERE id = ?";
-        List<TodoEntity> results = jdbcTemplate.query(sql, todoEntityRowMapper, id);
-        return Optional.of(results.isEmpty() ? null : results.get(0));
+        String sql = "SELECT * FROM todo WHERE id = :id";
+        //String sql = "SELECT * FROM todo WHERE id = ?";
+        Map<String, Object> params = new HashMap<>();
+        params.put("id", id);
+        try {
+            TodoEntity entity = namedParameterJdbcTemplate.queryForObject(sql, new MapSqlParameterSource(params), (rs, rowNum) ->
+                    TodoEntity.builder()
+                            .id(rs.getInt("id"))
+                            .title(rs.getString("title"))
+                            .description(rs.getString("description"))
+                            .author(rs.getString("author"))
+                            .password(rs.getString("password"))
+                            .completed(rs.getBoolean("completed"))
+                            .createdAt(rs.getTimestamp("createdAt") != null ? rs.getTimestamp("createdAt").toLocalDateTime() : null)
+                            .updatedAt(rs.getTimestamp("updatedAt") != null ? rs.getTimestamp("updatedAt").toLocalDateTime() : null)
+                            .dueDate(rs.getTimestamp("dueDate") != null ? rs.getTimestamp("dueDate").toLocalDateTime().toLocalDate() : null)
+                            .build()
+            );
+            System.out.println("조회된 엔티티 ID: " + entity.getId());
+            return Optional.ofNullable(entity);
+        } catch (EmptyResultDataAccessException e) {
+            System.out.println("조회 실패 - ID: " + id);
+            return Optional.empty();
+        } catch (Exception e) {
+            System.out.println("데이터 조회 중 오류 발생: " + e.getMessage());
+            throw new RuntimeException("데이터 조회 중 오류가 발생했습니다.", e);
+        }
     }
 
     /**
@@ -162,7 +196,8 @@ public class TodoRepositoryImpl implements TodoRepository {
      */
     @Override
     public List<TodoEntity> findByAuthor(String author) {
-        String sql = "SELECT * FROM todo WHERE author = ?";
+        String sql = "SELECT * FROM todo WHERE author LIKE ?";
+        String search = "%" + author + "%";
         return jdbcTemplate.query(sql, todoEntityRowMapper, author);
     }
 
@@ -173,12 +208,21 @@ public class TodoRepositoryImpl implements TodoRepository {
      */
     @Override
     public List<TodoEntity> findAllList() {
-        String sql = "select * from todo order by updateAt desc ";
-        try {
-            return jdbcTemplate.query(sql, todoEntityRowMapper);
-        } catch (DataAccessException e) {
-            throw new DataAccessException("전체 목록 조회 중 오류가 발생했습니다.", e);
-        }
+        String sql = "select * from todo order by updatedAt desc ";
+        return jdbcTemplate.query(sql, (rs, rowNum) -> {
+            return TodoEntity.builder()
+                    .id(rs.getInt("id"))
+                    .title(rs.getString("title"))
+                    .description(rs.getString("description"))
+                    .author(rs.getString("author"))
+                    .password(rs.getString("password"))
+                    .completed(rs.getBoolean("completed"))
+                    .createdAt(rs.getTimestamp("createdAt") != null ? rs.getTimestamp("createdAt").toLocalDateTime() : null)
+                    .updatedAt(rs.getTimestamp("updatedAt") != null ? rs.getTimestamp("updatedAt").toLocalDateTime() : null)
+                    .dueDate(rs.getTimestamp("dueDate") != null ? rs.getTimestamp("dueDate").toLocalDateTime().toLocalDate() : null)
+                    .build();
+        });
+
 
     }
 

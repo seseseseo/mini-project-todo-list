@@ -7,9 +7,9 @@ import java.util.List;
 import java.util.Optional;
 
 public interface TodoRepository {
-    int saveTodo(TodoEntity todoEntity); //일정 생성
-    int updateTodo(TodoEntity todoEntity); // 일정 수정
-    int deleteTodo(int id, String password); //일정 삭제
+    int registerTodoList(TodoEntity todoEntity); //일정 생성
+    int updateTodoList(TodoEntity todoEntity); // 일정 수정
+    int deleteTodoList(int id, String password); //일정 삭제
 
     Optional<TodoEntity> findById(int id); //id로 단일 일정 조회/ 단건 조회
     List<TodoEntity> findByAuthor(String author); //작성자 이름으로 일정 조회

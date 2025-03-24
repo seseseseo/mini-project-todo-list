@@ -5,16 +5,21 @@ import com.example.todo.dto.TodoResponseDto;
 import com.example.todo.entity.TodoEntity;
 import com.example.todo.exception.TodoNotFoundException;
 import com.example.todo.repository.TodoRepository;
+import lombok.extern.log4j.Log4j2;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.stream.Collectors;
-
+@Log4j2
 @Service
 public class TodoServiceImpl implements TodoService{
     private final TodoRepository todoRepository;
+    private static final Logger logger = LoggerFactory.getLogger(TodoServiceImpl.class);
 
     /**
      * TodoServiceImpl 생성자.
@@ -24,6 +29,7 @@ public class TodoServiceImpl implements TodoService{
      */
     public TodoServiceImpl(TodoRepository todoRepository) {
         this.todoRepository = todoRepository;
+
     }
 
 
@@ -36,7 +42,8 @@ public class TodoServiceImpl implements TodoService{
      * @return 저장된 Todo의 ID
      */
     @Override
-    public int saveTodo(TodoRequestDto requestDto) {
+    public int registerTodoList(TodoRequestDto requestDto) {
+        System.out.println("title: " + requestDto.getTitle());
         TodoEntity todoEntity = TodoEntity.builder()
                 .title(requestDto.getTitle())
                 .description(requestDto.getDescription())
@@ -48,7 +55,7 @@ public class TodoServiceImpl implements TodoService{
                 .updatedAt(LocalDateTime.now())
                 .build();
 
-        return todoRepository.saveTodo(todoEntity);
+        return todoRepository.registerTodoList(todoEntity);
     }
 
     /**
@@ -62,7 +69,7 @@ public class TodoServiceImpl implements TodoService{
      * @throws IllegalArgumentException 비밀번호가 일치하지 않는 경우
      */
     @Override
-    public int updateTodo(int id, TodoRequestDto requestDto) throws TodoNotFoundException {
+    public int updateTodoList(int id, TodoRequestDto requestDto) throws TodoNotFoundException {
         TodoEntity todo = todoRepository.findById(id)
                 .orElseThrow(() -> new TodoNotFoundException("일정을 찾을 수 없습니다"));
         //db에서 todo를 조회해 Optional로 감쌈
@@ -71,18 +78,14 @@ public class TodoServiceImpl implements TodoService{
             throw new TodoNotFoundException("비밀번호가 일치하지 않습니다");
         }
 
-        TodoEntity updatedTodo = TodoEntity.builder()
-                //.title(requestDto.getTitle())
-                .description(requestDto.getDescription())
-                .author(requestDto.getAuthor())
-                //.password(todo.getPassword())
-                .completed(requestDto.isCompleted())
-                .dueDate(requestDto.getDueDate())
-                //.createdAt(todo.getCreatedAt())
-                .updatedAt(LocalDateTime.now())
-                .build();
+        todo.setTitle(requestDto.getTitle());
+        todo.setDescription(requestDto.getDescription());
+        todo.setAuthor(requestDto.getAuthor());
+        todo.setCompleted(requestDto.isCompleted());
+        todo.setDueDate(requestDto.getDueDate());
+        todo.setUpdatedAt(LocalDateTime.now());
 
-        return todoRepository.updateTodo(updatedTodo);
+        return todoRepository.updateTodoList(todo);
 
     }
 
@@ -97,13 +100,23 @@ public class TodoServiceImpl implements TodoService{
      * @throws IllegalArgumentException 비밀번호가 일치하지 않는 경우
      */
     @Override
-    public int deleteTodo(int id, String password) {
+    public int deleteTodoList(int id, String password) {
         TodoEntity todo = todoRepository.findById(id)
                 .orElseThrow(() -> new TodoNotFoundException("일정을 찾을 수 없습니다"));
         if(!todo.getPassword().equals(password)){
             throw new TodoNotFoundException("비밀번호가 일치하지 않습니다");
         }
-        return todoRepository.deleteTodo(id, password);
+        return todoRepository.deleteTodoList(id, password);
+    }
+
+    @Override
+    public TodoResponseDto findById(int id) {
+        System.out.println("Received ID: " + id); // 디버그 로그 추가
+        Optional<TodoEntity> optionalTodo = todoRepository.findById(id);
+        TodoEntity todoEntity = optionalTodo.orElseThrow(() -> new NoSuchElementException("해당 ID의 일정이 존재하지 않습니다."));
+
+        System.out.println("조회된 일정 ID: " + todoEntity.getId());
+        return toResponseDto(todoEntity);
     }
 
     /**
@@ -113,11 +126,22 @@ public class TodoServiceImpl implements TodoService{
      * @return 조회된 Todo의 응답 DTO
      * @throws TodoNotFoundException 해당 ID의 Todo를 찾을 수 없는 경우
      */
-    @Override
-    public TodoResponseDto findById(int id) {
-        Optional<TodoEntity> todoEntity = todoRepository.findById(id);
-        return todoEntity.map(this::toResponseDto).orElseThrow(() -> new TodoNotFoundException("일정을 찾을 수 없습니다."));
-    }
+//    @Override
+//    public TodoResponseDto findById(int id) {
+//        System.out.println("Received ID: " + id); // 디버그 로그 추가
+//        Optional<TodoEntity> optionalTodo = todoRepository.findById(id);
+//        TodoEntity todoEntity = optionalTodo.orElseThrow(() -> new NoSuchElementException("해당 ID의 일정이 존재하지 않습니다."));
+//        return TodoResponseDto.builder()
+//                .id(todoEntity.getId())
+//                .title(todoEntity.getTitle())
+//                .description(todoEntity.getDescription())
+//                .author(todoEntity.getAuthor())
+//                .completed(todoEntity.isCompleted())
+//                .createdAt(todoEntity.getCreatedAt())
+//                .updatedAt(todoEntity.getUpdatedAt())
+//                .dueDate(todoEntity.getDueDate())
+//                .build();
+//    }
 
     /**
      * 모든 Todo 목록을 조회
@@ -127,6 +151,7 @@ public class TodoServiceImpl implements TodoService{
     @Override
     public List<TodoResponseDto> findAllList() {
         List<TodoEntity> entities = todoRepository.findAllList();
+
         return entities.stream().map(this::toResponseDto).collect(Collectors.toList());
 
     }
@@ -156,8 +181,19 @@ public class TodoServiceImpl implements TodoService{
         TodoEntity entity = todoRepository.findById(id)
                 .orElseThrow(() -> new TodoNotFoundException("일정을 찾을 수 없습니다. ID: " + id));
         entity.setCompleted(!entity.isCompleted());
-        todoRepository.updateTodo(entity);
+        todoRepository.updateTodoList(entity);
         return entity.isCompleted();
+    }
+
+    @Override
+    public boolean checkPassword(int id, String password) {
+        TodoEntity todo = todoRepository.findById(id)
+                .orElseThrow( () -> new TodoNotFoundException("일정을 찾을 수 없습니다"));
+        log.info("입력된 비밀번호: [" + password + "]");
+        log.info("DB저장된 비밀번호 [" + todo.getPassword() + "]");
+        log.info("비밀번호 일치 여부: " + todo.getPassword().equals(password));
+
+        return todo.getPassword().equals(password);
     }
 
     /**
@@ -168,13 +204,13 @@ public class TodoServiceImpl implements TodoService{
      */
     private TodoResponseDto toResponseDto(TodoEntity entity) {
         return TodoResponseDto.builder()
-                //.id(String.valueOf(entity.getId()))
+                .id(entity.getId())
                 .title(entity.getTitle())
                 .author(entity.getAuthor())
                 .description(entity.getDescription())
                 .dueDate(entity.getDueDate())
                 .completed(entity.isCompleted())
-                //.createdAt(entity.getCreatedAt())
+                .createdAt(entity.getCreatedAt())
                 .updatedAt(entity.getUpdatedAt())
                 .build();
     }
