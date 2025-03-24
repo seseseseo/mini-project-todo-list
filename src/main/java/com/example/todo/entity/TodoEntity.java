@@ -14,20 +14,23 @@ public class TodoEntity {
     private int id;
     private String title;
     private String description;
-    private String author;
+   //private String author;
     private String password;
     private boolean completed;
+
+    private int authorId;
+    private String authorName;
+    private String email;
 
     private LocalDate dueDate = LocalDate.now();
     private LocalDateTime createdAt = LocalDateTime.now();;
     private LocalDateTime updatedAt = LocalDateTime.now();;
 
-    public void setCompleted(boolean completed) {
-        this.completed = completed;
-    }
-    public void update(String title, String author, LocalDateTime updatedAt) {
+
+
+    public void update(String title, int authorId, LocalDateTime updatedAt) {
         this.title = title;
-        this.author = author;
+        this.authorId = authorId;
         this.updatedAt = updatedAt;
     }
 
@@ -39,9 +42,6 @@ public class TodoEntity {
         this.description = description;
     }
 
-    public void setAuthor(String author) {
-        this.author = author;
-    }
 
     public void setDueDate(LocalDate dueDate) {
         this.dueDate = dueDate;
@@ -49,5 +49,9 @@ public class TodoEntity {
 
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public void setCompleted(boolean completed) {
+        this.completed = completed;
     }
 }
