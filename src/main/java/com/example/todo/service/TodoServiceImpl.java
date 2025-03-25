@@ -30,8 +30,14 @@ public class TodoServiceImpl implements TodoService{
      */
     @Override
     public List<TodoResponseDto> findAllList() {
-        List<TodoEntity> entities = todoRepository.findAllList();
-        return entities.stream().map(this::toResponseDto).collect(Collectors.toList());
+        try {
+            List<TodoEntity> entities = todoRepository.findAllList();
+            return entities.stream().map(this::toResponseDto).collect(Collectors.toList());
+        } catch (Exception e) {
+            log.error("전체 일정 조회 중 오류 발생" + e.getMessage());
+            throw new TodoNotFoundException("전체 일정 조회 중 오류 발생" + e.getMessage());
+        }
+
     }
     /**
      * 기능 : 단건 조회
@@ -195,12 +201,12 @@ public class TodoServiceImpl implements TodoService{
         return TodoResponseDto.builder()
                 .id(entity.getId())
                 .title(entity.getTitle())
-                //.author(entity.getAuthor())
                 .description(entity.getDescription())
                 .dueDate(entity.getDueDate())
                 .completed(entity.isCompleted())
                 .createdAt(entity.getCreatedAt())
                 .updatedAt(entity.getUpdatedAt())
+                .authorName(entity.getAuthorName())
                 .build();
     }
 }

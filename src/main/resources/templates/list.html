@@ -20,7 +20,7 @@
     </div>
 
     <ul class="todo-list">
-        <li class="todo-item" th:each="todo : ${list}" th:classappend="${todo.completed} ? 'completed'">
+        <li class="todo-item" th:each="todo : ${todo}" th:classappend="${todo.completed} ? 'completed'">
             <input type="checkbox" class="checkbox" th:checked="${todo.completed} " readonly>
 
 
@@ -28,7 +28,7 @@
                 <span th:text="${todo.title}">제목 없음</span>
             </a>
             <span class="date" th:text="${#temporals.format(todo.dueDate, 'yyyy-MM-dd')}"></span>
-            <span class="author" th:text="${todo.author}"></span>
+            <span class="author" th:text="${todo.authorName}"></span>
             <div class="actions">
                 <button>✏️</button>
                 <button>🗑️</button>

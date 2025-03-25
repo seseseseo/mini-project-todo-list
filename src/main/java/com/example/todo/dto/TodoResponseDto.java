@@ -15,11 +15,11 @@ public class TodoResponseDto {
     private int id;
     private String title;
     private String description;
-    //private String author;
     private LocalDate dueDate;
     private boolean completed;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+
     private int authorId;
     private String authorName;
     private String email;

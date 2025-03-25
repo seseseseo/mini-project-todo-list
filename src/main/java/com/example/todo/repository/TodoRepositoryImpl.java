@@ -4,6 +4,7 @@ package com.example.todo.repository;
 import com.example.todo.entity.TodoEntity;
 import com.example.todo.exception.DataAccessException;
 
+import com.example.todo.exception.TodoNotFoundException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -63,6 +64,33 @@ public class TodoRepositoryImpl implements TodoRepository {
             .updatedAt(rs.getTimestamp("updatedAt").toLocalDateTime())
             .build();//entity생성자를 추가해주니까 오류가 떠버림 왤까?
 
+    /**
+     * 전체 Todo 목록을 최신순으로 조회합니다.
+     *
+     * @return 전체 Todo 목록
+     */
+    @Override
+    public List<TodoEntity> findAllList() {
+        String sql = "select t.id, t.title, t.createdAt, t.updatedAt, t.completed, a.authorName, t.dueDate " +
+                "from todo t join author a on t.author_id = a.author_id " +
+                "order by t.updatedAt desc";
+        try {
+            return jdbcTemplate.query(sql, (rs, rowNum) -> TodoEntity.builder()
+                    .id(rs.getInt("id"))
+                    .title(rs.getString("title"))
+                    .createdAt(rs.getTimestamp("createdAt").toLocalDateTime())
+                    .updatedAt(rs.getTimestamp("updatedAt").toLocalDateTime())
+                    .completed(rs.getBoolean("completed"))
+                    .dueDate(rs.getDate("dueDate") != null ? rs.getDate("dueDate").toLocalDate() : null)
+                    .authorName(rs.getString("authorName"))
+                    .build());
+
+        } catch (DataAccessException e) {
+            throw new TodoNotFoundException("일정을 찾을 수 없습니다.");
+        } catch (Exception e) {
+            throw new DataAccessException("전체 일정 조회 중 오류 발생");
+        }
+    }
 
     /**
      * 기능 : 할일 등록 새로운 Todo를 데이터베이스에 저장합니다.
@@ -71,6 +99,13 @@ public class TodoRepositoryImpl implements TodoRepository {
      */
     @Override
     public int registerTodoList(TodoEntity todoEntity) {
+        // 1. author 테이블에 데이터 삽입
+        System.out.println("=== [Debug] TodoEntity 정보 ===");
+        System.out.println("Title: " + todoEntity.getTitle());
+        System.out.println("AuthorName: " + todoEntity.getAuthorName());
+        System.out.println("Email: " + todoEntity.getEmail());
+        System.out.println("CreatedAt: " + todoEntity.getCreatedAt());
+        System.out.println("UpdatedAt: " + todoEntity.getUpdatedAt());
 
         String sql = "INSERT INTO todo (title, author, description, password, createdAt, updatedAt, dueDate, completed) " +
                 "VALUES (:title, :author, :description, :password, :createdAt, :updatedAt, :dueDate, :completed)";
@@ -188,30 +223,7 @@ public class TodoRepositoryImpl implements TodoRepository {
         return jdbcTemplate.query(sql, todoEntityRowMapper, author);
     }
 
-    /**
-     * 전체 Todo 목록을 최신순으로 조회합니다.
-     *
-     * @return 전체 Todo 목록
-     */
-    @Override
-    public List<TodoEntity> findAllList() {
-        String sql = "select * from todo order by updatedAt desc ";
-        return jdbcTemplate.query(sql, (rs, rowNum) -> {
-            return TodoEntity.builder()
-                    .id(rs.getInt("id"))
-                    .title(rs.getString("title"))
-                    .description(rs.getString("description"))
 
-                    .password(rs.getString("password"))
-                    .completed(rs.getBoolean("completed"))
-                    .createdAt(rs.getTimestamp("createdAt") != null ? rs.getTimestamp("createdAt").toLocalDateTime() : null)
-                    .updatedAt(rs.getTimestamp("updatedAt") != null ? rs.getTimestamp("updatedAt").toLocalDateTime() : null)
-                    .dueDate(rs.getTimestamp("dueDate") != null ? rs.getTimestamp("dueDate").toLocalDateTime().toLocalDate() : null)
-                    .build();
-        });
-
-
-    }
 
     /**
      * 제목을 통해 Todo 목록을 조회합니다.
