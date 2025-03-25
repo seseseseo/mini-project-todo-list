@@ -3,6 +3,7 @@ package com.example.todo.controller;
 import com.example.todo.dto.TodoRequestDto;
 import com.example.todo.dto.TodoResponseDto;
 
+import com.example.todo.entity.TodoEntity;
 import com.example.todo.service.TodoService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
@@ -10,6 +11,8 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.List;
 
 
@@ -22,24 +25,11 @@ public class TodoController {
     /**
      * 모든 일정 조회 list.html
      */
-    @GetMapping
-    public String findAllList(Model model) {
-        List<TodoResponseDto> todo = todoService.findAllList();
-        model.addAttribute("todo", todo);
-        return "list";  // list.html
-    }
 //    @GetMapping
-//    public ModelAndView list(@RequestParam(value = "author", required = false) String author) throws Exception {
-//        List<TodoResponseDto> todo;
-//        ModelAndView modelAndView = new ModelAndView("list");
-//        if (author != null &&  !author.trim().isEmpty()) {
-//           todo = todoService.findByAuthor(author);
-//        } else {
-//            todo = todoService.findAllList();
-//        }
-//        modelAndView.addObject("list", todo);
-//        modelAndView.addObject("author", author);
-//        return modelAndView;
+//    public String findAllList(Model model) {
+//        List<TodoResponseDto> todo = todoService.findAllList();
+//        model.addAttribute("todo", todo);
+//        return "list";  // list.html
 //    }
 
     /**
@@ -52,9 +42,36 @@ public class TodoController {
         model.addAttribute("todo", todo);
         return "read";
     }
+    /**
+     * GET 작성자 기준으로 조회
+     *
+     */
+    @GetMapping
+    public String findByTodoList(@RequestParam(value = "authorName", required = false) String authorName, Model model) {
+        List<TodoResponseDto> todo;
+        // 작성자명으로 검색하거나 전체 목록 조회
+        if (authorName != null && !authorName.isEmpty()) {
+            todo = todoService.findByAuthor(authorName);
+        } else {
+            todo = todoService.findAllList();
+        }
+        model.addAttribute("todo", todo);
+        return "list";
 
-    /*
-     *GET 할일 등록 페이지
+    }
+    @PostMapping
+    public String searchByAuthorName(@RequestParam("authorName") String authorName) {
+        try {
+            // URL 인코딩 처리
+            String encodedAuthorName = URLEncoder.encode(authorName, "UTF-8");
+            return "redirect:/todo?authorName=" + encodedAuthorName;
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+            return "redirect:/todo";
+        }
+    }
+
+     /*GET 할일 등록 페이지
      * 새로운 일정 등록할 때 사용하는 register.html 반환
     */
     @GetMapping("/register")
