@@ -78,7 +78,12 @@ span {
     display: flex;
     align-items: center;
     padding: 10px;
+<<<<<<< HEAD
     background-color: #c3c0cc;
+=======
+    background-color: #b2aec9;
+
+>>>>>>> e00dc16 (Initial commit)
     color: white;
 }
 

@@ -23,6 +23,7 @@ TODO 는 일정관리 어플리케이션으로 CRUD 기능을 통해 일정의 �
 ## 구현할 클래스
 ```
 📂 src/main/java/com/example/todo
+<<<<<<< HEAD
 ├─ 📁 controller/          클라이언트 요청을 처리하고 응답을 반환
 │    └─ TodoController.java       # 목록 조회 관련 컨트롤러
 │  
@@ -38,6 +39,28 @@ TODO 는 일정관리 어플리케이션으로 CRUD 기능을 통해 일정의 �
 │    └─ 📝 TodoRequestDto.java
 │    └─ 📝 TodoResponseDto.java
 ├─ 📁 util/                          # 공통적으로 사용되는 유틸리티 클래스
+=======
+├─ 📁 controller/                     # 컨트롤러 : 클라이언트 요청을 처리하고 응답을 반환
+│    └─ TodoController.java       
+│    └─ TodoApiController.java      
+├─ 📁 service/                        # 서비스 : 비즈니스 로직 처리
+│    └─ 📝 TodoService.java
+│    └─ 📝 TodoServiceImpl.java
+├─ 📁 repository/                     # 레파지토리 : DB 접근 및 CRUD 작업 수행하는 계층
+│    └─ 📝 TodoRepository.java
+│    └─ 📝 TodoRepositoryImpl.java
+│    └─ 📝 AuthorRepositoryImpl.java
+│    └─ 📝 AuthorRepositoryImpl.java
+├─ 📁 entity/                         # 데이터 관련 계층
+│    └─ 📝 TodoEntity.java
+│    └─ 📝 AuthorEntity.java
+├─ 📁 dto/                            # 계층 간 데이터 전송을 위한 DTO 클래스
+│    └─ 📝 TodoRequestDto.java
+│    └─ 📝 TodoResponseDto.java
+│    └─ 📝 PageResponseDto.java
+│    └─ 📝 PageResponseDto.java
+├─ 📁 exception/                      # 예외 관련 로직
+>>>>>>> e00dc16 (Initial commit)
 │    ├─ 📝 
 │    └─ 📝 
 └─ 📁 application/         # Main Application
