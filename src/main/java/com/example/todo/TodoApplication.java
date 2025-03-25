@@ -3,7 +3,9 @@ package com.example.todo;
 import com.example.todo.entity.TodoEntity;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.transaction.annotation.EnableTransactionManagement;
 
+@EnableTransactionManagement
 @SpringBootApplication
 public class TodoApplication {
 

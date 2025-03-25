@@ -14,11 +14,9 @@ public class TodoEntity {
     private int id;
     private String title;
     private String description;
-   //private String author;
     private String password;
-    private boolean completed;
-
-    private int authorId;
+    private boolean completed = false;
+    private int authorId; // FK
     private String authorName;
     private String email;
 

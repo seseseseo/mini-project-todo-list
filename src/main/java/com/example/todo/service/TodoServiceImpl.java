@@ -2,13 +2,17 @@ package com.example.todo.service;
 
 import com.example.todo.dto.TodoRequestDto;
 import com.example.todo.dto.TodoResponseDto;
+import com.example.todo.entity.AuthorEntity;
 import com.example.todo.entity.TodoEntity;
 import com.example.todo.exception.TodoNotFoundException;
+import com.example.todo.repository.AuthorRepository;
 import com.example.todo.repository.TodoRepository;
 import lombok.extern.log4j.Log4j2;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -20,7 +24,10 @@ import java.util.stream.Collectors;
 public class TodoServiceImpl implements TodoService{
     private final TodoRepository todoRepository;
 
-    public TodoServiceImpl(TodoRepository todoRepository) {
+    private final AuthorRepository authorRepository;
+
+    public TodoServiceImpl(AuthorRepository authorRepository, TodoRepository todoRepository) {
+        this.authorRepository = authorRepository;
         this.todoRepository = todoRepository;
     }
 
@@ -37,7 +44,6 @@ public class TodoServiceImpl implements TodoService{
             log.error("전체 일정 조회 중 오류 발생" + e.getMessage());
             throw new TodoNotFoundException("전체 일정 조회 중 오류 발생" + e.getMessage());
         }
-
     }
     /**
      * 기능 : 단건 조회
@@ -63,20 +69,47 @@ public class TodoServiceImpl implements TodoService{
      * @return 저장된 Todo의 ID
      */
     @Override
+    @Transactional
     public int registerTodoList(TodoRequestDto requestDto) {
-        System.out.println("title: " + requestDto.getTitle());
-        TodoEntity todoEntity = TodoEntity.builder()
-                .title(requestDto.getTitle())
-                .description(requestDto.getDescription())
-                //.author(requestDto.getAuthor())
-                .password(requestDto.getPassword())
-                .completed(false)
-                .dueDate(requestDto.getDueDate())
-                .createdAt(LocalDateTime.now())
-                .updatedAt(LocalDateTime.now())
-                .build();
+        try {
+            System.out.println("title: " + requestDto.getTitle());
+            // 1. 작성자 정보 저장 및 author_id 반환
+            AuthorEntity authorEntity = AuthorEntity.builder()
+                    .authorName(requestDto.getAuthorName())
+                    .email(requestDto.getEmail())
+                    .createdAt(LocalDateTime.now())
+                    .updatedAt(LocalDateTime.now())
+                    .build();
+            int authorId = authorRepository.saveAuthor(authorEntity);
+            log.info("authorId: " + authorId);
+            AuthorEntity storedAuthor = authorRepository.findAuthorById(authorId);
+            log.info("Stored Author: {}", storedAuthor);
 
-        return todoRepository.registerTodoList(todoEntity);
+            //2. 할 일 생성 엔티티
+            TodoEntity todoEntity = TodoEntity.builder()
+                    .title(requestDto.getTitle())
+                    .description(requestDto.getDescription())
+                    .authorId(authorId)
+                    .password(requestDto.getPassword())
+                    .completed(false)
+                    .dueDate(requestDto.getDueDate())
+                    .createdAt(LocalDateTime.now())
+                    .updatedAt(LocalDateTime.now())
+                    .authorName(requestDto.getAuthorName())  // 💡 추가
+                    .email(requestDto.getEmail())  // 💡 추가
+                    .build();
+
+            // 💡 레포지토리에 제대로 전달되는지 확인
+            log.info("서비스에서 전달하는 TodoEntity: {}", todoEntity);
+
+            // 3. 할 일 등록
+            int todoId = todoRepository.registerTodoList(todoEntity, authorId);
+            log.info("할 일 등록 성공! ID: {}", todoEntity.getId());
+
+            return todoId;
+        }catch (Exception e) {
+            throw new RuntimeException("(service) 할 일 등록 중 오류 발생" + e.getMessage());
+        }
     }
 
     /**

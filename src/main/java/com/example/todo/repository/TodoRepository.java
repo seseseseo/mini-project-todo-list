@@ -1,13 +1,12 @@
 package com.example.todo.repository;
 
 import com.example.todo.entity.TodoEntity;
-import com.example.todo.exception.TodoNotFoundException;
 
 import java.util.List;
 import java.util.Optional;
 
 public interface TodoRepository {
-    int registerTodoList(TodoEntity todoEntity); //일정 생성
+    int registerTodoList(TodoEntity todoEntity, int authorId); //일정 생성
     int updateTodoList(TodoEntity todoEntity); // 일정 수정
     int deleteTodoList(int id, String password); //일정 삭제
 

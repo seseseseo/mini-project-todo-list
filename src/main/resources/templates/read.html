@@ -19,8 +19,10 @@
 
     <!-- 작성자, 작성시간 -->
     <div class="meta">
-        작성자: <span th:text="${todo.author}">작성자</span> |
-        작성일시: <span th:text="${#temporals.format(todo.createdAt, 'yyyy-MM-dd HH:mm')}">2025-03-21 19:30</span>
+        작성자: <span th:text="${todo.authorName}"></span>&nbsp;&nbsp; |&nbsp;&nbsp;
+        작성일시: <span th:text="${#temporals.format(todo.createdAt, 'yyyy-MM-dd HH:mm')}"></span> &nbsp;&nbsp|&nbsp;&nbsp;
+        마감기한: <span th:text="${#temporals.format(todo.dueDate, 'yyyy-MM-dd')}"></span><br>
+        <span th:text="${todo.email}"></span>
     </div>
 
     <!-- 글 내용 -->

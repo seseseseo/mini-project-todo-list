@@ -1,10 +1,12 @@
 package com.example.todo.repository;
 
 
+import com.example.todo.entity.AuthorEntity;
 import com.example.todo.entity.TodoEntity;
 import com.example.todo.exception.DataAccessException;
 
 import com.example.todo.exception.TodoNotFoundException;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -15,6 +17,7 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.*;
 
 /**
@@ -22,6 +25,7 @@ import java.util.*;
  * 데이터베이스와 상호작용하는 구체적인 로직을 제공합니다.
  * JDBC와 NamedParameterJdbcTemplate을 사용하여 데이터베이스 작업을 수행합니다.
  */
+@Log4j2
 @Repository
 public class TodoRepositoryImpl implements TodoRepository {
 
@@ -94,21 +98,32 @@ public class TodoRepositoryImpl implements TodoRepository {
 
     /**
      * 기능 : 할일 등록 새로운 Todo를 데이터베이스에 저장합니다.
+     *
      * @param todoEntity 를 저장할 TodoEntity 객체
+     * @param authorId
      * @return 생성된 Todo의 ID
      */
     @Override
-    public int registerTodoList(TodoEntity todoEntity) {
+    public int registerTodoList(TodoEntity todoEntity, int authorId) {
         // 1. author 테이블에 데이터 삽입
-        System.out.println("=== [Debug] TodoEntity 정보 ===");
-        System.out.println("Title: " + todoEntity.getTitle());
-        System.out.println("AuthorName: " + todoEntity.getAuthorName());
-        System.out.println("Email: " + todoEntity.getEmail());
-        System.out.println("CreatedAt: " + todoEntity.getCreatedAt());
-        System.out.println("UpdatedAt: " + todoEntity.getUpdatedAt());
+        log.info("=== [디버그] TodoEntity 정보 ===");
+        log.info("authorId = " + authorId);
+        log.info("id: " + todoEntity.getId());
+        log.info("Title: " + todoEntity.getTitle());
+        log.info("AuthorName: " + todoEntity.getAuthorName());
+        log.info("Email: " + todoEntity.getEmail());
+        log.info("CreatedAt: " + todoEntity.getCreatedAt());
+        log.info("UpdatedAt: " + todoEntity.getUpdatedAt());
 
-        String sql = "INSERT INTO todo (title, author, description, password, createdAt, updatedAt, dueDate, completed) " +
-                "VALUES (:title, :author, :description, :password, :createdAt, :updatedAt, :dueDate, :completed)";
+        AuthorEntity authorEntity = AuthorEntity.builder()
+                .authorName(todoEntity.getAuthorName())
+                .email(todoEntity.getEmail())
+                .createdAt(LocalDateTime.now())
+                .updatedAt(LocalDateTime.now())
+                .build();
+
+        String sql = "INSERT INTO todo (title, description, password, createdAt, updatedAt, dueDate, completed, author_id) " +
+                "VALUES (:title, :description, :password, :createdAt, :updatedAt, :dueDate, :completed, :author_id)";
 
         MapSqlParameterSource params = new MapSqlParameterSource();
         params.addValue("title", todoEntity.getTitle());
@@ -116,16 +131,20 @@ public class TodoRepositoryImpl implements TodoRepository {
         params.addValue("password", todoEntity.getPassword());
         params.addValue("createdAt", Timestamp.valueOf(todoEntity.getCreatedAt()));
         params.addValue("updatedAt", Timestamp.valueOf(todoEntity.getUpdatedAt()));
-
-        if (todoEntity.getDueDate() != null) {
-            params.addValue("dueDate", Timestamp.valueOf(todoEntity.getDueDate().atStartOfDay()));
-        } else {
-            params.addValue("dueDate", null);
-        }
+        params.addValue("completed", todoEntity.isCompleted());
+        params.addValue("dueDate", todoEntity.getDueDate() != null ? Timestamp.valueOf(todoEntity.getDueDate().atStartOfDay()) : null);
+        params.addValue("author_id", authorId);
+        KeyHolder keyHolder = new GeneratedKeyHolder();
         try {
-            KeyHolder keyHolder = new GeneratedKeyHolder(); //insert시 자동으로 키 생성
+            //insert시 자동으로 키 생성
             namedParameterJdbcTemplate.update(sql, params, keyHolder, new String[]{"id"});
-            return keyHolder.getKey().intValue();
+            Number generatedKey = keyHolder.getKey();
+            if (generatedKey == null) {
+                throw new RuntimeException("Todo ID를 가져올 수 없습니다.");
+            }
+            int generatedId = generatedKey.intValue();
+            log.info("Todo 등록 완료, ID: {}", generatedId);
+            return generatedId;
         } catch (DataAccessException e) {
             throw new DataAccessException("일정 저장 중 오류가 발생했습니다");
         }
@@ -181,8 +200,11 @@ public class TodoRepositoryImpl implements TodoRepository {
      */
     @Override
     public Optional<TodoEntity> findById(int id)  {
-        String sql = "SELECT * FROM todo WHERE id = :id";
-        //String sql = "SELECT * FROM todo WHERE id = ?";
+        String sql = "select t.id, t.title, t.description, t.password, t.completed, t.createdAt, t.updatedAt, t.dueDate, " +
+                "a.authorName, a.email " +
+                "from todo t " +
+                "join author a on t.author_id = a.author_id " +
+                "where t.id = :id";
         MapSqlParameterSource params = new MapSqlParameterSource();
         params.addValue("id", id);
         try {
@@ -191,9 +213,10 @@ public class TodoRepositoryImpl implements TodoRepository {
                             .id(rs.getInt("id"))
                             .title(rs.getString("title"))
                             .description(rs.getString("description"))
-
                             .password(rs.getString("password"))
                             .completed(rs.getBoolean("completed"))
+                            .authorName(rs.getString("authorName"))
+                            .email(rs.getString("email"))
                             .createdAt(rs.getTimestamp("createdAt") != null ? rs.getTimestamp("createdAt").toLocalDateTime() : null)
                             .updatedAt(rs.getTimestamp("updatedAt") != null ? rs.getTimestamp("updatedAt").toLocalDateTime() : null)
                             .dueDate(rs.getTimestamp("dueDate") != null ? rs.getTimestamp("dueDate").toLocalDateTime().toLocalDate() : null)

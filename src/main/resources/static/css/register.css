@@ -30,7 +30,7 @@ label {
     margin-bottom: 5px;
     display: block;
 }
-input[type="text"], input[type="password"], input[type="datetime-local"] {
+input[type="text"], input[type="password"], input[type="datetime-local"], input[type="email"] {
     width: 100%;
     padding: 8px;
     margin: 5px 0 15px 0;
