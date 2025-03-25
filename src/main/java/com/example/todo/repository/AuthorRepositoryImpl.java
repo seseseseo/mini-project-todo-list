@@ -56,8 +56,6 @@ public class AuthorRepositoryImpl implements AuthorRepository {
             int generatedId = key.intValue();
             log.info("레포지토리, insert 완료: generated{}: ", generatedId);
             log.info("레파지토리, insert 완료 KeyHolder.getKey(): " + keyHolder.getKey());
-
-
             return generatedId;
         } catch (DataAccessException e) {
             System.err.println("작성자 저장 중에 문제 발생");

@@ -1,13 +1,18 @@
 package com.example.todo.controller;
 
+import com.example.todo.dto.PageRequestDto;
+import com.example.todo.dto.PageResponseDto;
 import com.example.todo.dto.TodoRequestDto;
 import com.example.todo.dto.TodoResponseDto;
 
 import com.example.todo.entity.TodoEntity;
 import com.example.todo.service.TodoService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
@@ -15,7 +20,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.List;
 
-
+@Log4j2
 @Controller
 @RequiredArgsConstructor //final필드에 대해 자동 생성자 만들어줌
 @RequestMapping("/todo")
@@ -25,13 +30,35 @@ public class TodoController {
     /**
      * 모든 일정 조회 list.html
      */
-//    @GetMapping
-//    public String findAllList(Model model) {
-//        List<TodoResponseDto> todo = todoService.findAllList();
-//        model.addAttribute("todo", todo);
-//        return "list";  // list.html
-//    }
+    @GetMapping
+    public String getList(@Valid PageRequestDto pageRequestDto,
+                          @RequestParam(value = "authorName", required = false) String authorName,
+                          BindingResult bindingResult, Model model) {
 
+        log.info("페이지 요청: {}", pageRequestDto);
+        if(bindingResult.hasErrors()) {
+            pageRequestDto = PageRequestDto.builder().build();
+        }
+        // 작성자 이름이 있으면 페이지 요청 DTO에 추가
+        if (authorName != null && !authorName.isEmpty()) {
+            pageRequestDto.setAuthorName(authorName);
+        }
+
+        //서비스에서 리스트 가져오기
+        PageResponseDto<TodoRequestDto> responseDto = todoService.getList(pageRequestDto);
+
+        model.addAttribute("responseDTO", responseDto.getDtoList());
+        model.addAttribute("currentPage", responseDto.getPage());
+        model.addAttribute("total", responseDto.getTotal());
+        model.addAttribute("size", responseDto.getSize());
+        model.addAttribute("endPage", responseDto.getEnd());  // 마지막 페이지
+        model.addAttribute("startPage", responseDto.getStart()); // 첫 페이지
+        model.addAttribute("prev", responseDto.isPrev());
+        model.addAttribute("next", responseDto.isNext());
+        model.addAttribute("authorName", authorName);
+        log.info("컨트롤러에서 전달할 데이터 개수: " + responseDto.getDtoList().size());
+        return "list";
+    }
     /**
      * GET ID로 단건 조회 페이지
      * 특정 ID에 해당하는 일정 정보를 조회해 read.html로 반환
@@ -46,19 +73,20 @@ public class TodoController {
      * GET 작성자 기준으로 조회
      *
      */
-    @GetMapping
-    public String findByTodoList(@RequestParam(value = "authorName", required = false) String authorName, Model model) {
-        List<TodoResponseDto> todo;
-        // 작성자명으로 검색하거나 전체 목록 조회
-        if (authorName != null && !authorName.isEmpty()) {
-            todo = todoService.findByAuthor(authorName);
-        } else {
-            todo = todoService.findAllList();
-        }
-        model.addAttribute("todo", todo);
-        return "list";
+//    @GetMapping
+//    public String findByTodoList(@RequestParam(value = "authorName", required = false) String authorName, Model model) {
+//        List<TodoResponseDto> todo;
+//        // 작성자명으로 검색하거나 전체 목록 조회
+//        if (authorName != null && !authorName.isEmpty()) {
+//            todo = todoService.findByAuthor(authorName);
+//        } else {
+//            todo = todoService.findAllList();
+//        }
+//        model.addAttribute("todo", todo);
+//        return "list";
+//
+//    }
 
-    }
     @PostMapping
     public String searchByAuthorName(@RequestParam("authorName") String authorName) {
         try {

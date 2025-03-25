@@ -1,5 +1,6 @@
 package com.example.todo.controller;
 
+import com.example.todo.dto.PageResponseDto;
 import com.example.todo.dto.TodoRequestDto;
 import com.example.todo.dto.TodoResponseDto;
 import com.example.todo.service.TodoService;
@@ -17,41 +18,31 @@ import java.util.Map;
 public class TodoApiController {
     private final TodoService todoService;
 
-     /*
-     *  일정 등록 처리 (POST /api/todo)
-     *
-     */
+
+
+
+    //단건 조회
+    @GetMapping("/{id}")
+    public ResponseEntity<TodoResponseDto> findById(@PathVariable int id) {
+        TodoResponseDto todo = todoService.findById(id);
+        return ResponseEntity.ok(todo);
+    }
+
+
+
+    //등록
     @PostMapping
     public ResponseEntity<String> registerTodoList(@RequestBody TodoRequestDto requestDto){
         todoService.registerTodoList(requestDto);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body("일정이 성공적으로 추가되었습니다." + requestDto.toString());
     }
-
-    //단건 조회
-    @GetMapping("/{id}")
-    public ResponseEntity<TodoResponseDto> findById(@PathVariable int id) {
-
-        TodoResponseDto todo = todoService.findById(id);
-        return ResponseEntity.ok(todo);
-    }
-    //전체조회
-    @GetMapping
-    public ResponseEntity<List<TodoResponseDto>> findAllList() {
-        List<TodoResponseDto> todo = todoService.findAllList();
-        return ResponseEntity.ok(todo);
-    }
-    /**
-     * 일정 수정 처리
-     */
-
-    @PostMapping("/update/{id}")
-    public String updateTodoList(@PathVariable int id, @ModelAttribute TodoRequestDto requestDto) {
+    //수정
+    @PostMapping("/{id}")
+    public ResponseEntity<String> updateTodoList(@PathVariable int id, @ModelAttribute TodoRequestDto requestDto) {
         todoService.updateTodoList(id, requestDto);
-        return "redirect:/todo";  // 수정 후 목록 페이지로 리다이렉트
+        return ResponseEntity.ok("일정이 수정되었습니다" );
     }
-
-
     /**
      * 일정 삭제 처리
      */

@@ -1,5 +1,7 @@
 package com.example.todo.service;
 
+import com.example.todo.dto.PageRequestDto;
+import com.example.todo.dto.PageResponseDto;
 import com.example.todo.dto.TodoRequestDto;
 import com.example.todo.dto.TodoResponseDto;
 import com.example.todo.entity.AuthorEntity;
@@ -8,15 +10,11 @@ import com.example.todo.exception.TodoNotFoundException;
 import com.example.todo.repository.AuthorRepository;
 import com.example.todo.repository.TodoRepository;
 import lombok.extern.log4j.Log4j2;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.stream.Collectors;
 @Log4j2
@@ -31,20 +29,44 @@ public class TodoServiceImpl implements TodoService{
         this.todoRepository = todoRepository;
     }
 
+    @Override
+    public PageResponseDto<TodoRequestDto> getList(PageRequestDto pageRequestDto) {
+        // DB에서 가져온 엔티티 목록
+        List<TodoEntity> entityList = todoRepository.getList(pageRequestDto);
+        log.info("서비스 계층, getList 부분 - 가져온 엔티티 수: " + entityList.size());
+
+        // Entity -> DTO 변환
+        List<TodoRequestDto> dtoList = entityList.stream()
+                .map(TodoRequestDto::new)
+                .collect(Collectors.toList());
+
+        // 전체 데이터 개수 조회
+        int total = todoRepository.getCount(pageRequestDto);
+        log.info("서비스 계층, getList 부분 - 전체 데이터 개수: " + total);
+        log.info("서비스 계층, getList 부분 - DTO 개수: " + dtoList.size());
+
+        // 페이지 응답 객체 생성
+        return PageResponseDto.<TodoRequestDto>withAll()
+                .dtoList(dtoList)
+                .total(total)
+                .pageRequestDto(pageRequestDto)
+                .build();
+    }
+
     /**
      * 모든 Todo 목록을 조회
      * @return 전체 Todo 목록의 응답 DTO 리스트
      */
-    @Override
-    public List<TodoResponseDto> findAllList() {
-        try {
-            List<TodoEntity> entities = todoRepository.findAllList();
-            return entities.stream().map(this::toResponseDto).collect(Collectors.toList());
-        } catch (Exception e) {
-            log.error("전체 일정 조회 중 오류 발생" + e.getMessage());
-            throw new TodoNotFoundException("전체 일정 조회 중 오류 발생" + e.getMessage());
-        }
-    }
+//    @Override
+//    public List<TodoResponseDto> findAllList() {
+//        try {
+//            List<TodoEntity> entities = todoRepository.findAllList();
+//            return entities.stream().map(this::toResponseDto).collect(Collectors.toList());
+//        } catch (Exception e) {
+//            log.error("전체 일정 조회 중 오류 발생" + e.getMessage());
+//            throw new TodoNotFoundException("전체 일정 조회 중 오류 발생" + e.getMessage());
+//        }
+//    }
     /**
      * 기능 : 단건 조회
      * Optional 처리로 조회되지 않으면 예외 던지고 조회된 엔티티를 응답 DTO로 변환
@@ -104,7 +126,7 @@ public class TodoServiceImpl implements TodoService{
 
             // 3. 할 일 등록
             int todoId = todoRepository.registerTodoList(todoEntity, authorId);
-            log.info("할 일 등록 성공! ID: {}", todoEntity.getId());
+            log.info("할 일 등록 성공! ID: {}", todoId);
 
             return todoId;
         }catch (Exception e) {
@@ -161,26 +183,6 @@ public class TodoServiceImpl implements TodoService{
 
 
 
-
-//    @Override
-//    public TodoResponseDto findById(int id) {
-//        System.out.println("Received ID: " + id); // 디버그 로그 추가
-//        Optional<TodoEntity> optionalTodo = todoRepository.findById(id);
-//        TodoEntity todoEntity = optionalTodo.orElseThrow(() -> new NoSuchElementException("해당 ID의 일정이 존재하지 않습니다."));
-//        return TodoResponseDto.builder()
-//                .id(todoEntity.getId())
-//                .title(todoEntity.getTitle())
-//                .description(todoEntity.getDescription())
-//                .author(todoEntity.getAuthor())
-//                .completed(todoEntity.isCompleted())
-//                .createdAt(todoEntity.getCreatedAt())
-//                .updatedAt(todoEntity.getUpdatedAt())
-//                .dueDate(todoEntity.getDueDate())
-//                .build();
-//    }
-
-
-
     /**
      * 기능:작성자 기준으로 Todo 목록을 조회합
      * @param author 조회할 저자명
@@ -223,6 +225,12 @@ public class TodoServiceImpl implements TodoService{
         log.info("비밀번호 일치 여부: " + todo.getPassword().equals(password));
 
         return todo.getPassword().equals(password);
+    }
+
+
+    @Override
+    public int getCount(PageRequestDto pageRequestDto) {
+        return 0;
     }
 
     /**

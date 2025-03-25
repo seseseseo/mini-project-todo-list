@@ -1,6 +1,7 @@
 package com.example.todo.repository;
 
 
+import com.example.todo.dto.PageRequestDto;
 import com.example.todo.entity.AuthorEntity;
 import com.example.todo.entity.TodoEntity;
 import com.example.todo.exception.DataAccessException;
@@ -74,12 +75,33 @@ public class TodoRepositoryImpl implements TodoRepository {
      * @return 전체 Todo 목록
      */
     @Override
-    public List<TodoEntity> findAllList() {
-        String sql = "select t.id, t.title, t.createdAt, t.updatedAt, t.completed, a.authorName, t.dueDate " +
-                "from todo t join author a on t.author_id = a.author_id " +
-                "order by t.updatedAt desc";
-        try {
-            return jdbcTemplate.query(sql, (rs, rowNum) -> TodoEntity.builder()
+    public List<TodoEntity> getList(PageRequestDto pageRequestDto) {
+        int page = pageRequestDto.getPage() - 1;
+        int skip = pageRequestDto.getSkip();
+        int size = pageRequestDto.getSize();
+
+        StringBuilder sql = new StringBuilder("select t.id, t.title, t.createdAt, t.updatedAt, t.completed, a.authorName, t.dueDate ");
+        sql.append("from todo t ");
+        sql.append("join author a ON t.author_id = a.author_id ");  // author 테이블과 조인
+
+        MapSqlParameterSource params = new MapSqlParameterSource();
+        if(pageRequestDto.getAuthorName() != null && !pageRequestDto.getAuthorName().isEmpty()) {
+            sql.append("where a.authorName like :authorName ");
+            params.addValue("authorName", "%" + pageRequestDto.getAuthorName() + "%");
+        }
+        sql.append("order by t.dueDate DESC ");
+        sql.append("limit ").append(size).append(" offset ").append(skip);
+
+
+        params.addValue("skip", skip);
+        params.addValue("size", size);
+        log.info("SQL Query: " + sql.toString());
+        log.info("Size: " + size + ", Skip: " + skip);
+
+        return namedParameterJdbcTemplate.query(
+                sql.toString(),
+                params,
+                (rs, rowNum) -> TodoEntity.builder()
                     .id(rs.getInt("id"))
                     .title(rs.getString("title"))
                     .createdAt(rs.getTimestamp("createdAt").toLocalDateTime())
@@ -88,13 +110,8 @@ public class TodoRepositoryImpl implements TodoRepository {
                     .dueDate(rs.getDate("dueDate") != null ? rs.getDate("dueDate").toLocalDate() : null)
                     .authorName(rs.getString("authorName"))
                     .build());
-
-        } catch (DataAccessException e) {
-            throw new TodoNotFoundException("일정을 찾을 수 없습니다.");
-        } catch (Exception e) {
-            throw new DataAccessException("전체 일정 조회 중 오류 발생");
-        }
     }
+
     /**
      * 작성자를 통해 단일 Todo를 조회합니다.
      *
@@ -286,6 +303,24 @@ public class TodoRepositoryImpl implements TodoRepository {
         } catch (DataAccessException e) {
             throw new DataAccessException("제목으로 일정 조회 중 오류가 발생했습니다.");
         }
+    }
+
+
+
+    @Override
+    public int getCount(PageRequestDto pageRequestDto) {
+        StringBuilder sql = new StringBuilder("select count(*) from todo t ");
+        sql.append("join author a on t.author_id = a.author_id ");
+        MapSqlParameterSource params = new MapSqlParameterSource();
+        if(pageRequestDto.getAuthorName() != null && !pageRequestDto.getAuthorName().isEmpty()) {
+            sql.append("where a.authorName like :authorName ");
+            params.addValue("authorName", "%" + pageRequestDto.getAuthorName() + "%");
+        }
+
+
+        int count = namedParameterJdbcTemplate.queryForObject(sql.toString(), params, Integer.class);
+        log.info("데이터 전체 개수:" + count);
+        return count;
     }
 
 }
