@@ -19,7 +19,7 @@
         </div>
         <div class="form-group">
             <label>작성자</label>
-            <input type="text" name="author" th:value="${todo.author}" required>
+            <input type="text" name="author" th:value="${todo.authorName}" required>
         </div>
         <div class="form-group">
             <label>내용</label>
@@ -43,7 +43,7 @@
         <button type="submit" class="btn-update">수정 완료</button>
     </form>
     <!-- 삭제 폼 -->
-    <form th:action="@{|/todo/delete/${todo.id}|}" method="post" style="margin-top:10px;">
+     <form th:action="@{'/todo/' + ${todo.id} + '/delete'}" method="post" style="display: inline;">
         <input type="password" name="password" placeholder="비밀번호 입력" required>
         <button type="submit" class="btn-delete">삭제하기</button>
     </form>
