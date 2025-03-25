@@ -6,7 +6,10 @@ import com.example.todo.dto.TodoRequestDto;
 import com.example.todo.dto.TodoResponseDto;
 import com.example.todo.entity.AuthorEntity;
 import com.example.todo.entity.TodoEntity;
+import com.example.todo.exception.DataAccessException;
+import com.example.todo.exception.PasswordException;
 import com.example.todo.exception.TodoNotFoundException;
+import com.example.todo.exception.TodoSaveException;
 import com.example.todo.repository.AuthorRepository;
 import com.example.todo.repository.TodoRepository;
 import lombok.extern.log4j.Log4j2;
@@ -31,42 +34,40 @@ public class TodoServiceImpl implements TodoService{
 
     @Override
     public PageResponseDto<TodoRequestDto> getList(PageRequestDto pageRequestDto) {
-        // DB에서 가져온 엔티티 목록
-        List<TodoEntity> entityList = todoRepository.getList(pageRequestDto);
-        log.info("서비스 계층, getList 부분 - 가져온 엔티티 수: " + entityList.size());
+        try {
+            // DB에서 가져온 엔티티 목록
+            List<TodoEntity> entityList = todoRepository.getList(pageRequestDto);
+            log.info("서비스 계층, getList 부분 - 가져온 엔티티 수: " + entityList.size());
 
-        // Entity -> DTO 변환
-        List<TodoRequestDto> dtoList = entityList.stream()
-                .map(TodoRequestDto::new)
-                .collect(Collectors.toList());
+            // 데이터가 없는 경우
+            if (entityList.isEmpty()) {
+                log.warn("서비스 계층, getList 부분 - 데이터가 없습니다.");
+                throw new TodoNotFoundException("조회된 일정 데이터가 없습니다.");
+            }
 
-        // 전체 데이터 개수 조회
-        int total = todoRepository.getCount(pageRequestDto);
-        log.info("서비스 계층, getList 부분 - 전체 데이터 개수: " + total);
-        log.info("서비스 계층, getList 부분 - DTO 개수: " + dtoList.size());
+            // Entity -> DTO 변환
+            List<TodoRequestDto> dtoList = entityList.stream()
+                    .map(TodoRequestDto::new)
+                    .collect(Collectors.toList());
 
-        // 페이지 응답 객체 생성
-        return PageResponseDto.<TodoRequestDto>withAll()
-                .dtoList(dtoList)
-                .total(total)
-                .pageRequestDto(pageRequestDto)
-                .build();
+            // 전체 데이터 개수 조회
+            int total = todoRepository.getCount(pageRequestDto);
+            log.info("서비스 계층, getList 부분 - 전체 데이터 개수: " + total);
+            log.info("서비스 계층, getList 부분 - DTO 개수: " + dtoList.size());
+
+            // 페이지 응답 객체 생성
+            return PageResponseDto.<TodoRequestDto>withAll()
+                    .dtoList(dtoList)
+                    .total(total)
+                    .pageRequestDto(pageRequestDto)
+                    .build();
+        } catch (Exception e) {
+            log.error("서비스 계층, getList 부분 - 데이터 조회 중 오류 발생: " + e.getMessage());
+            throw new DataAccessException("데이터 조회 중 오류가 발생했습니다.");
+        }
     }
 
-    /**
-     * 모든 Todo 목록을 조회
-     * @return 전체 Todo 목록의 응답 DTO 리스트
-     */
-//    @Override
-//    public List<TodoResponseDto> findAllList() {
-//        try {
-//            List<TodoEntity> entities = todoRepository.findAllList();
-//            return entities.stream().map(this::toResponseDto).collect(Collectors.toList());
-//        } catch (Exception e) {
-//            log.error("전체 일정 조회 중 오류 발생" + e.getMessage());
-//            throw new TodoNotFoundException("전체 일정 조회 중 오류 발생" + e.getMessage());
-//        }
-//    }
+
     /**
      * 기능 : 단건 조회
      * Optional 처리로 조회되지 않으면 예외 던지고 조회된 엔티티를 응답 DTO로 변환
@@ -83,6 +84,7 @@ public class TodoServiceImpl implements TodoService{
         System.out.println("조회된 일정 ID: " + todoEntity.getId());
         return toResponseDto(todoEntity);
     }
+
     /**
      * 기능 : 새로운 Todo를 저장합니다.
      * 기능 : DTO에서 엔티티로 변환하여 저장
@@ -130,7 +132,7 @@ public class TodoServiceImpl implements TodoService{
 
             return todoId;
         }catch (Exception e) {
-            throw new RuntimeException("(service) 할 일 등록 중 오류 발생" + e.getMessage());
+            throw new TodoSaveException("(service) 할 일 등록 중 오류 발생" + e.getMessage());
         }
     }
 
@@ -176,7 +178,7 @@ public class TodoServiceImpl implements TodoService{
         TodoEntity todo = todoRepository.findById(id)
                 .orElseThrow(() -> new TodoNotFoundException("일정을 찾을 수 없습니다"));
         if(!todo.getPassword().equals(password)){
-            throw new TodoNotFoundException("비밀번호가 일치하지 않습니다");
+            throw new PasswordException("비밀번호가 일치하지 않습니다");
         }
         return todoRepository.deleteTodoList(id, password);
     }

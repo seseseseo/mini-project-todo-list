@@ -1,6 +1,7 @@
 package com.example.todo.controller;
 import com.example.todo.dto.TodoRequestDto;
 import com.example.todo.dto.TodoResponseDto;
+import com.example.todo.exception.PasswordException;
 import com.example.todo.service.TodoService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -21,8 +22,6 @@ public class TodoApiController {
         TodoResponseDto todo = todoService.findById(id);
         return ResponseEntity.ok(todo);
     }
-
-
 
     //등록
     @PostMapping
@@ -55,11 +54,13 @@ public class TodoApiController {
         String password = request.get("password");
 
         if (password == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("비밀번호 불일치");
+            ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(new PasswordException("비밀번호가 일치하지 않습니다."));
         }
         boolean passwordVerified = todoService.checkPassword(id, password);
         if (!passwordVerified) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("비밀번호가 일치하지 않습니다.");
+            ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(new PasswordException("비밀번호가 일치하지 않습니다."));
         }
         return ResponseEntity.ok("비밀번호 일치");
 

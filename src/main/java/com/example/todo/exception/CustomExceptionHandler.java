@@ -24,12 +24,21 @@ public class CustomExceptionHandler {
     public ResponseEntity<String> handlerTodoSaveException(TodoSaveException e, WebRequest req) {
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(e.getMessage()+ "일정 저장 실패");
+                .body( "일정 데이터를 저장하는 도중 오류가 발생했습니다. " +e.getMessage());
     }
 
-    //db 관련
+    //db 연결 실패
     @ExceptionHandler(DataAccessException.class)
     public ResponseEntity<String> handlerDataAccessException(DataAccessException e, WebRequest req) {
-        return new ResponseEntity<>("데이터베이스 오류가 발생했습니다. "+ e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        return ResponseEntity
+                .status(HttpStatus.SERVICE_UNAVAILABLE)
+                .body("데이터베이스 연결에 실패했습니다. " + e.getMessage());
+    }
+
+    @ExceptionHandler(PasswordException.class)
+    public ResponseEntity<String> handlerPasswordException(PasswordException e, WebRequest req) {
+        return ResponseEntity
+                .status(HttpStatus.UNAUTHORIZED)
+                .body("비밀번호가 일치하지 않습니다.. "+ e.getMessage());
     }
 }
