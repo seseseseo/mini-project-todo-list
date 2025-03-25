@@ -4,8 +4,6 @@ import com.example.todo.dto.PageRequestDto;
 import com.example.todo.dto.PageResponseDto;
 import com.example.todo.dto.TodoRequestDto;
 import com.example.todo.dto.TodoResponseDto;
-
-import com.example.todo.entity.TodoEntity;
 import com.example.todo.service.TodoService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -14,7 +12,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.ModelAndView;
+
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
