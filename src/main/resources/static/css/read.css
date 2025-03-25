@@ -1,0 +1,74 @@
+
+body { font-family: 'Arial', sans-serif; }
+.container {
+    width: 700px;
+    margin: 50px auto;
+    padding: 20px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background-color: #f9f9f9;
+    display: flex;
+    flex-direction: column;
+}
+.id-number {
+    margin-bottom: 5px;
+}
+.title {
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 20px;
+}
+
+.meta {
+    color: #888;
+    font-size: 14px;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #eaeaea;
+}
+.description {
+    margin: 20px 0;
+    min-height: 100px;
+}
+
+.btn-group.hidden {
+    width: 100%;
+    display: flex;
+    justify-content: flex-end;
+
+}
+.btn-delete {
+    display: flex;
+    justify-content: center;
+}
+.btn-group.list {
+    display: flex;
+    justify-content: flex-end;
+
+}
+.btn-group button {
+    padding: 8px 15px;
+}
+.btn-group.check-pass {
+    padding: 5px;
+    display: flex;
+    justify-content: flex-end;
+}
+.input-password {
+    margin-right: 5px;
+    solid-color: #888888;
+}
+.btn-group button, .btn-group a {
+
+    margin-right: 5px;
+    border-radius: 5px;
+    cursor: pointer;
+    border: none;
+    text-decoration: none;
+}
+button {
+    justify-content: flex-end;
+}
+.btn-edit { background-color: #afa4c2; color: white; justify-content: flex-end; }
+.btn-delete { background-color: #f44336; color: white; }
+.btn-list { background-color: #afa4c2; color: white;  margin-top: 20px;justify-content: flex-end;}

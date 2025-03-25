@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" th:href="@{/css/list.css}">
+
+</head>
+<body>
+<div class="container">
+    <div class="header"><h1 style="text-align: center;">Todo-list</h1></div>
+    <div class="input-area">
+        <input type="text" placeholder="+버튼을 누르면 할 일 추가 가능!" id="todo-input" readonly>
+        <a href="/todo/register"><button>+</button></a>
+    </div>
+    <div class="search-container">
+        <form th:action="@{/todo}" method="post">
+            <input type="text" name="authorName" placeholder="작성자 이름 검색" class="search-input">
+            <button type="submit">🔍</button>
+        </form>
+
+    </div>
+
+    <!-- 헤더 -->
+    <div class="todo-list-header">
+        <span class="checkbox-header">✔️</span>
+        <span class="title-header">제목</span>
+        <span class="due-date-header">마감일</span>
+        <span class="author-header">작성자</span>
+    </div>
+
+    <!-- 할 일 리스트 -->
+    <ul class="todo-list">
+        <li class="todo-item" th:each="todo : ${responseDTO}"
+            th:classappend="${todo.completed} ? 'completed' : ''">
+            <div class="checkbox">
+                <input type="checkbox" th:checked="${todo.completed}" readonly>
+            </div>
+            <div class="title">
+                <a th:href="@{/todo/read(id=${todo.id})}" th:text="${todo.title}">제목 없음</a>
+            </div>
+            <div class="date" th:text="${#temporals.format(todo.dueDate, 'yyyy-MM-dd')}">-</div>
+            <div class="author" th:text="${todo.authorName}">-</div>
+        </li>
+    </ul>
+
+
+    <!-- 페이징 -->
+    <div class="pagination">
+        <ul>
+            <!-- 이전 페이지 버튼 -->
+            <li th:if="${prev}">
+                <a th:href="@{/todo(page=${currentPage - 1}, size=${size}, authorName=${authorName})}">&laquo; 이전</a>
+            </li>
+
+            <!-- 페이지 번호 버튼 -->
+            <li th:each="pageNum : ${#numbers.sequence(startPage, endPage)}"
+                th:class="${pageNum == currentPage} ? 'active'">
+                <a th:href="@{/todo(page=${pageNum}, size=${size}, authorName=${authorName})}"
+                   th:text="${pageNum}"></a>
+            </li>
+
+            <!-- 다음 페이지 버튼 -->
+            <li th:if="${next}">
+                <a th:href="@{/todo(page=${currentPage + 1}, size=${size}, authorName=${authorName})}">다음 &raquo;</a>
+            </li>
+        </ul>
+    </div>
+
+</div>
+
+</body>
+
+</html>

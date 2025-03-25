@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>일정 등록하기</title>
+    <link rel="stylesheet" th:href="@{/css/register.css}">
+</head>
+<body>
+<div class="main-wrapper">
+
+    <div class="container">
+        <div class="header">
+            <h2>할 일 등록</h2>
+        </div>
+        <form th:action="@{/todo/register}" method="post">
+            제목 <input type="text" name="title" required/><br/>
+            작성자 <input type="text" name="authorName" required/><br/>
+            이메일 <input type="email" name="email" required> <br/>
+            비밀번호 <input type="password" name="password" required/><br/>
+            설명 <input type="text" name="description"/><br/>
+            마감일 <input type="date" name="dueDate"/><br/>
+
+            <button type="submit">등록하기</button>
+        </form>
+    </div>
+</div>
+
+
+</body>
+</html>
