@@ -31,7 +31,7 @@ public class TodoApiController {
                 .body("일정이 성공적으로 추가되었습니다." + requestDto.toString());
     }
     //수정
-    @PostMapping("/{id}")
+    @PutMapping("/{id}")
     public ResponseEntity<String> updateTodoList(@PathVariable int id, @ModelAttribute TodoRequestDto requestDto) {
         todoService.updateTodoList(id, requestDto);
         return ResponseEntity.ok("일정이 수정되었습니다" );
@@ -59,8 +59,8 @@ public class TodoApiController {
         }
         boolean passwordVerified = todoService.checkPassword(id, password);
         if (!passwordVerified) {
-            ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(new PasswordException("비밀번호가 일치하지 않습니다."));
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body("비밀번호가 일치하지 않습니다.");
         }
         return ResponseEntity.ok("비밀번호 일치");
 

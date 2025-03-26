@@ -2,6 +2,7 @@ package com.example.todo.exception;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -40,5 +41,13 @@ public class CustomExceptionHandler {
         return ResponseEntity
                 .status(HttpStatus.UNAUTHORIZED)
                 .body("비밀번호가 일치하지 않습니다.. "+ e.getMessage());
+    }
+
+    @ExceptionHandler(ValidationExceptions.class)
+    public ResponseEntity<String> handlerValidationException(MethodArgumentNotValidException e, WebRequest req) {
+        String error = e.getBindingResult().getAllErrors().get(0).getDefaultMessage();
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(error);
     }
 }

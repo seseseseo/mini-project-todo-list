@@ -67,23 +67,7 @@ public class TodoController {
         model.addAttribute("todo", todo);
         return "read";
     }
-    /**
-     * GET 작성자 기준으로 조회
-     *
-     */
-//    @GetMapping
-//    public String findByTodoList(@RequestParam(value = "authorName", required = false) String authorName, Model model) {
-//        List<TodoResponseDto> todo;
-//        // 작성자명으로 검색하거나 전체 목록 조회
-//        if (authorName != null && !authorName.isEmpty()) {
-//            todo = todoService.findByAuthor(authorName);
-//        } else {
-//            todo = todoService.findAllList();
-//        }
-//        model.addAttribute("todo", todo);
-//        return "list";
-//
-//    }
+
 
     @PostMapping
     public String searchByAuthorName(@RequestParam("authorName") String authorName) {
