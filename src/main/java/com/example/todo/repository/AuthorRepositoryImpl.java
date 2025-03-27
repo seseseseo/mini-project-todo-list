@@ -25,10 +25,6 @@ public class AuthorRepositoryImpl implements AuthorRepository {
 
     @Override
     public int saveAuthor(AuthorEntity authorEntity) {
-        System.out.println("=== [레파지토리 테스트] ===");
-        System.out.println("Saving Author: " + authorEntity.getAuthorName());
-        System.out.println("Saving Email: " + authorEntity.getEmail());
-
         String authorSql = "insert into author (authorName, email, createdAt, updatedAt) " +
                 "values (:authorName, :email, :createdAt, :updatedAt)";
 
@@ -37,25 +33,16 @@ public class AuthorRepositoryImpl implements AuthorRepository {
         params.addValue("email", authorEntity.getEmail() != null ? authorEntity.getEmail() : "Noooo-email@example.com");
         params.addValue("createdAt", Timestamp.valueOf(authorEntity.getCreatedAt()));
         params.addValue("updatedAt", Timestamp.valueOf(authorEntity.getUpdatedAt()));
-        //삽입 됐나 확인
-        log.info("AuthorSQL: " + authorSql);
-        log.info("params: " + params);
-        log.info("작성자 확인: " + params.getValue("authorName"));
-        log.info("Email 확인: " + params.getValue("email"));
+
         //자동 생성 되는 키
         KeyHolder keyHolder = new GeneratedKeyHolder();
         try {
             int rowsAffected = namedParameterJdbcTemplate.update(authorSql, params, keyHolder, new String[]{"author_id"});
-            log.info("Rows affected: {}", rowsAffected);
-
             Number key = keyHolder.getKey();
             if (key == null) {
-                log.error("Generated Key is null");
                 throw new RuntimeException("Generated Key is null");
             }
             int generatedId = key.intValue();
-            log.info("레포지토리, insert 완료: generated{}: ", generatedId);
-            log.info("레파지토리, insert 완료 KeyHolder.getKey(): " + keyHolder.getKey());
             return generatedId;
         } catch (DataAccessException e) {
             System.err.println("작성자 저장 중에 문제 발생");

@@ -1,6 +1,7 @@
 package com.example.todo.dto;
 
 import com.example.todo.entity.TodoEntity;
+import com.example.todo.service.TodoService;
 import jakarta.validation.constraints.*;
 import lombok.*;
 
