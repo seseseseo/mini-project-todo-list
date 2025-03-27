@@ -30,49 +30,26 @@ TODO 는 일정관리 어플리케이션으로 CRUD 기능을 통해 일정의 �
 ## ERD 
 ![img.png](img.png)
 
-## 프로젝트 구조
-```
-📂 src/main/java/com/example/todo
-<<<<<<< HEAD
-├─ 📁 controller/          클라이언트 요청을 처리하고 응답을 반환
-│    └─ TodoController.java       # 목록 조회 관련 컨트롤러
-│  
-├─ 📁 service/                       # 비즈니스 로직 처리
-│    └─ 📝 TodoService.java
-│    └─ 📝 TodoServiceImpl.java
-├─ 📁 repository/                    # DB 접근 및 CRUD 작업 수행하는 계층
-│    └─ 📝 TodoRepository.java
-│    └─ 📝 TodoRepositoryImpl.java
-├─ 📁 entity/                         # 데이터 관련 계층
-│    └─ 📝 TodoEntity.java
-├─ 📁 dto/                      # 계층 간 데이터 전송을 위한 DTO 클래스
-│    └─ 📝 TodoRequestDto.java
-│    └─ 📝 TodoResponseDto.java
-├─ 📁 util/                          # 공통적으로 사용되는 유틸리티 클래스
-=======
-├─ 📁 controller/                     # 컨트롤러 : 클라이언트 요청을 처리하고 응답을 반환
-│    └─ TodoController.java       
-│    └─ TodoApiController.java      
-├─ 📁 service/                        # 서비스 : 비즈니스 로직 처리
-│    └─ 📝 TodoService.java
-│    └─ 📝 TodoServiceImpl.java
-├─ 📁 repository/                     # 레파지토리 : DB 접근 및 CRUD 작업 수행하는 계층
-│    └─ 📝 TodoRepository.java
-│    └─ 📝 TodoRepositoryImpl.java
-│    └─ 📝 AuthorRepositoryImpl.java
-│    └─ 📝 AuthorRepositoryImpl.java
-├─ 📁 entity/                         # 데이터 관련 계층
-│    └─ 📝 TodoEntity.java
-│    └─ 📝 AuthorEntity.java
-├─ 📁 dto/                            # 계층 간 데이터 전송을 위한 DTO 클래스
-│    └─ 📝 TodoRequestDto.java
-│    └─ 📝 TodoResponseDto.java
-│    └─ 📝 PageResponseDto.java
-│    └─ 📝 PageResponseDto.java
-├─ 📁 exception/                      # 예외 관련 로직
->>>>>>> e00dc16 (Initial commit)
-│    ├─ 📝 
-│    └─ 📝 
-└─ 📁 application/         # Main Application
-     └─ 📝 TodoApplication.java
-```
+## 기능 소개
+Todo List 프로젝트의 주요 기능을 소개합니다. 
+#### 할일 조회 기능
+- 모든 할 일을 조회할 수 있고, 페이지네이션이 적용되어 있습니다.
+- 일정 목록은 마감 기한순으로 가까운 일정이 앞에 보이게, 마감 기한이 지난 일정이나 완료한 일정은 뒤에 보이게 정렬했습니다.
+![img_1.png](img_1.png)
+- 작성자 기준으로도 조회가 가능합니다.
+ ![img_5.png](img_5.png)
+#### 할일 추가 기능
+- 할 일을 추가할 수 있으며 제목, 작성자, 마감일, 이메일, 비밀번호, 설명 등을 입력 가능합니다.
+- 제목, 작성자, 비밀번호, 이메일은 필수로 입력해야 합니다.
+- 목록 조회에서 + 버튼을 누르면 새 일정을 간편하게 만들 수 있습니다.
+![img_2.png](img_2.png)
+
+#### 할 일 상세 조회 기능
+- 목록에서 제목을 클릭하면 해당 일정의 상세 정보를 확인할 수 있습니다.
+![img_3.png](img_3.png)
+- 비밀번호를 입력하고 올바른 값이 들어가면 수정/삭제 버튼이 뜹니다.
+![img_6.png](img_6.png)
+#### 할일 수정/삭제
+- 상세 목록 조회 페이지에서 비밀번호 입력을 받아 일치하면 수정페이지로 이동합니다.
+- 수정하기로 들어가서 한 번 더 비밀번호 입력을 하면 수정/삭제가 가능합니다.
+![img_7.png](img_7.png)
