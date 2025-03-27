@@ -42,10 +42,6 @@ public class TodoServiceImpl implements TodoService{
             List<TodoEntity> entityList = todoRepository.getList(pageRequestDto);
             log.info("조회된 엔티티 수:", entityList.size());
             // 데이터가 없는 경우
-            if (entityList.isEmpty()) {
-                log.warn("조회된 데이터가 없습니다.");
-                throw new TodoNotFoundException("조회된 일정 데이터가 없습니다.");
-            }
 
             // Entity -> DTO 변환
             List<TodoRequestDto> dtoList = entityList.stream()
