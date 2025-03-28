@@ -62,29 +62,32 @@
 
                 console.log("비밀번호 확인 요청: ID = " + id + ", Password = " + password);
 
+                //비밀번호 검증 api 요청
+                //fetch로 API를 사용해 서버에 비밀번호 확인 요청을 보냄
                 fetch(`/api/todo/check-password/${id}`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                         'Accept': 'application/json'
                     },
-                    body: JSON.stringify({ password: password })
+                    body: JSON.stringify({ password })
                 })
-                    .then(response => {
-                        console.log("응답 상태 코드: " + response.status);
-                        return response.text().then(text => {
-                            if (response.ok) {
-                                alert("비밀번호가 일치합니다.");
-                                document.getElementById("updateBtn").style.display = "inline";
-                                document.getElementById("deleteBtn").style.display = "inline";
-                                const updateUrl = `/todo/update/${id}?password=${encodeURIComponent(password)}`;
-                                document.getElementById("updateBtn").href = updateUrl;
-                                document.getElementById("deletePassword").value = password;
-                            } else {
-                                alert("비밀번호가 일치하지 않습니다: " + text);
-                            }
-                        });
-                    })
+                    .then(response => response.text().then(text => {
+                    console.log("응답 상태 코드: " + response.status);
+                    if (response.ok) {
+                        alert("비밀번호가 일치합니다.");
+                        const updateBtn = document.getElementById("updateBtn");
+                        const deleteBtn = document.getElementById("deleteBtn");
+
+                        updateBtn.style.display = "inline";
+                        deleteBtn.style.display = "inline";
+                        const updateUrl = `/todo/update/${id}?password=${encodeURIComponent(password)}`;
+                        updateBtn.href = updateUrl;
+                    } else {
+                        alert("비밀번호가 일치하지 않습니다 ");
+                    }
+
+                    }))
                     .catch(error => {
                         alert("비밀번호 검증 중 오류가 발생했습니다.");
                         console.error(error);
@@ -94,13 +97,13 @@
                 const id = document.getElementById("todoId").value;
                 const password = document.getElementById("password").value;
 
-                console.log("삭제 요청: ID = " + id + ", Password = " + password);
+                console.log("삭제 요청: id = " + id + ", password = " + password);
                 fetch(`/api/todo/${id}`, {
                     method: "DELETE",
                     headers: {
                         "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ password: password })
+                    body: JSON.stringify({  password })
                 })
                     .then(response => {
                         console.log("응답 상태 코드: " + response.status);

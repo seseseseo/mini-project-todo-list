@@ -74,7 +74,7 @@ public class TodoRepositoryImpl implements TodoRepository {
         }
         sql.append("order by ");
         sql.append("t.completed ASC, ");  // 미완료가 먼저, 완료가 나중에
-        sql.append("case when t.dueDate < now() then 1 else 0 end ASC, ");  // 마감 기한이 지난 것은 뒤로
+        sql.append("case when date(coalesce( t.dueDate, Date(now()))) < Date(now()) then 1 else 0 end ASC, ");  // 마감 기한이 지난 것은 뒤로
         sql.append("t.dueDate asc ");  // 마감 기한이 가까운 순으로 정렬
         sql.append("limit ").append(size).append(" offset ").append(skip);
 
