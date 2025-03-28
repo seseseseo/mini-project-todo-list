@@ -37,9 +37,9 @@ public class TodoRepositoryImpl implements TodoRepository {
     }
 
     /**
-     *   (JDBC를 사용해 db 로 조회한 결과( resultset ) 을  todoentity 객체로 매핑하는 역할)
-     *   TodoEntity를 매핑하는 RowMapper
-     *   ResultSet으로부터 데이터를 추출하여 TodoEntity 객체를 생성
+     * (JDBC를 사용해 db 로 조회한 결과( resultset ) 을  todoentity 객체로 매핑하는 역할)
+     * TodoEntity를 매핑하는 RowMapper
+     * ResultSet으로부터 데이터를 추출하여 TodoEntity 객체를 생성
      */
     private RowMapper<TodoEntity> todoEntityRowMapper = (rs, rowNum) -> TodoEntity.builder()
             .id(rs.getInt("id"))
@@ -54,6 +54,7 @@ public class TodoRepositoryImpl implements TodoRepository {
     /**
      * 전체 Todo 목록을 최신순으로 조회
      * 페이징을 적용
+     *
      * @param pageRequestDto 페이지 요청 정보
      * @return 전체 Todo 목록
      */
@@ -68,7 +69,7 @@ public class TodoRepositoryImpl implements TodoRepository {
         sql.append("join author a ON t.author_id = a.author_id ");  // author 테이블과 조인
 
         MapSqlParameterSource params = new MapSqlParameterSource();
-        if(pageRequestDto.getAuthorName() != null && !pageRequestDto.getAuthorName().isEmpty()) {
+        if (pageRequestDto.getAuthorName() != null && !pageRequestDto.getAuthorName().isEmpty()) {
             sql.append("where a.authorName like :authorName ");
             params.addValue("authorName", "%" + pageRequestDto.getAuthorName() + "%");
         }
@@ -87,39 +88,34 @@ public class TodoRepositoryImpl implements TodoRepository {
 
     /**
      * 작성자를 통해 단일 Todo를 조회
-     * @param authorName : 조회할 작성자
+     *
+     * @param : 조회할 작성자
      * @return 저자가 작성한 Todo목록
      */
     @Override
-    public List<TodoEntity> findByAuthor(String authorName) {
+    public List<TodoEntity> searchByAuthor(PageRequestDto pageRequestDto) {
         String sql = "select t.id, t.title, t.description, t.createdAt, t.updatedAt, t.completed, t.dueDate , a.authorName, a.email " +
                 "from todo t " +
                 "left join author a on t.author_id = a.author_id " +
                 "where a.authorName like :authorName " +
                 "order by t.createdAt desc";
+        log.info("SQL 쿼리: {}", sql);  // 💡 SQL 로그 추가
+
         MapSqlParameterSource params = new MapSqlParameterSource();
-        params.addValue("authorName", "%" + authorName + "%");
+        params.addValue("authorName", "%" + pageRequestDto.getQuery() + "%");
         return namedParameterJdbcTemplate.query(sql, params, todoEntityRowMapper);
     }
 
     /**
-     *  할일 등록 새로운 Todo를 데이터베이스에 저장
+     * 할일 등록 새로운 Todo를 데이터베이스에 저장
+     *
      * @param todoEntity 를 저장할 TodoEntity 객체
      * @param authorId
      * @return 생성된 Todo의 ID
      */
     @Override
     public int registerTodoList(TodoEntity todoEntity, int authorId) {
-        // 1. author 테이블에 데이터 삽입
-        log.info("=== [디버그] TodoEntity 정보 ===");
-        log.info("authorId = " + authorId);
-        log.info("id: " + todoEntity.getId());
-        log.info("Title: " + todoEntity.getTitle());
-        log.info("AuthorName: " + todoEntity.getAuthorName());
-        log.info("Email: " + todoEntity.getEmail());
-        log.info("CreatedAt: " + todoEntity.getCreatedAt());
-        log.info("UpdatedAt: " + todoEntity.getUpdatedAt());
-
+        
         AuthorEntity authorEntity = AuthorEntity.builder()
                 .authorName(todoEntity.getAuthorName())
                 .email(todoEntity.getEmail())
@@ -156,7 +152,8 @@ public class TodoRepositoryImpl implements TodoRepository {
 
 
     /**
-     *  Todo를 수정
+     * Todo를 수정
+     *
      * @param todoEntity : 수정할 TodoEntity 객체
      * @return 수정된 행의 수를 리턴합니다.
      */
@@ -190,21 +187,21 @@ public class TodoRepositoryImpl implements TodoRepository {
     /**
      * 특정 ID의 Todo를 삭제
      *
-     * @param id : 삭제할 Todo의 ID
+     * @param id       : 삭제할 Todo의 ID
      * @param password : Todo 비밀번호
      * @return 삭제된 행의 수
      */
     @Override
-    public int deleteTodoList(int id, String password){
+    public int deleteTodoList(int id, String password) {
         String sql = "DELETE FROM todo WHERE id = :id";
         MapSqlParameterSource params = new MapSqlParameterSource();
         params.addValue("id", id);
         try {
             int rows = namedParameterJdbcTemplate.update(sql, params);
-            log.info("삭제 성공: {}", id);
+
             return rows;
         } catch (DataAccessException e) {
-            log.error("삭제 중 오류: {}", id);
+
             throw new DataAccessException("삭제 중 오류가 발생했습니다.");
         }
     }
@@ -216,7 +213,7 @@ public class TodoRepositoryImpl implements TodoRepository {
      * @return 조회된 TodoEntity 객체를 감싼 Optional 객체
      */
     @Override
-    public Optional<TodoEntity> findById(int id)  {
+    public Optional<TodoEntity> findById(int id) {
         String sql = "select t.id, t.title, t.description, t.password, t.completed, t.createdAt, t.updatedAt, t.dueDate, " +
                 "a.authorName, a.email " +
                 "from todo t " +
@@ -249,20 +246,66 @@ public class TodoRepositoryImpl implements TodoRepository {
     }
 
 
-
     @Override
     public int getCount(PageRequestDto pageRequestDto) {
         StringBuilder sql = new StringBuilder("select count(*) from todo t ");
         sql.append("join author a on t.author_id = a.author_id ");
         MapSqlParameterSource params = new MapSqlParameterSource();
-        if(pageRequestDto.getAuthorName() != null && !pageRequestDto.getAuthorName().isEmpty()) {
+        if (pageRequestDto.getAuthorName() != null && !pageRequestDto.getAuthorName().isEmpty()) {
             sql.append("where a.authorName like :authorName ");
             params.addValue("authorName", "%" + pageRequestDto.getAuthorName() + "%");
         }
 
         int count = namedParameterJdbcTemplate.queryForObject(sql.toString(), params, Integer.class);
-        log.info("데이터 전체 개수:" + count);
+
         return count;
     }
 
+    @Override
+    public List<TodoEntity> searchByTitle(PageRequestDto pageRequestDto) {
+        int skip = pageRequestDto.getSkip();
+        int size = pageRequestDto.getSize();
+        StringBuilder sql = new StringBuilder("select t.id, t.title, t.description, t.createdAt, t.updatedAt, t.completed, t.dueDate , a.authorName, a.email ");
+        sql.append("from todo t ");
+        sql.append("left join author a on t.author_id = a.author_id ");
+
+        MapSqlParameterSource params = new MapSqlParameterSource();
+        if (pageRequestDto.getQuery() != null && !pageRequestDto.getQuery().isEmpty()) {
+            sql.append("where t.title like :title ");
+            params.addValue("title", "%" + pageRequestDto.getQuery() + "%");
+        }
+        sql.append("order by t.id desc ");
+        sql.append("limit ").append(size).append(" offset ").append(skip);
+        params.addValue("title", "%" + pageRequestDto.getQuery() + "%");
+        params.addValue("skip", skip);
+        params.addValue("size", size);
+
+        try {
+            List<TodoEntity> result = namedParameterJdbcTemplate.query(sql.toString(), params, todoEntityRowMapper);
+            return result;
+        } catch (Exception e) {
+            log.error("제목으로 검색 중 오류 발생: {}", e.getMessage());
+            throw new DataAccessException("제목으로 검색 중 오류 발생: " + e.getMessage());
+        }
+
+
+    }
+
+    @Override
+    public int getCountByTitle(String title) {
+        String sql = "select count(*) from todo t left join author a on t.author_id = a.author_id where t.title like :title";
+
+        MapSqlParameterSource params = new MapSqlParameterSource();
+        params.addValue("title", "%" + title + "%");
+
+        try {
+            int count = namedParameterJdbcTemplate.queryForObject(sql, params, Integer.class);
+
+            return count;
+        } catch (Exception e) {
+            log.error("데이터 개수 조회 중 오류 발생: {}", e.getMessage());
+            throw new DataAccessException("데이터 개수 조회 중 오류 발생: " + e.getMessage());
+        }
+
+    }
 }

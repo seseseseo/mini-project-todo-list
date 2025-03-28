@@ -213,6 +213,50 @@ public class TodoServiceImpl implements TodoService{
         return 0;
     }
 
+    @Override
+    public PageResponseDto<TodoRequestDto> searchByAuthor(PageRequestDto pageRequestDto) {
+        try {
+            List<TodoEntity> entitiyList = todoRepository.searchByAuthor(pageRequestDto);
+
+            List<TodoRequestDto> dtoList = entitiyList.stream()
+                    .map(TodoRequestDto::new)
+                    .collect(Collectors.toList());
+            int total = todoRepository.getCount(pageRequestDto);
+
+
+            return PageResponseDto.<TodoRequestDto>withAll()
+                    .dtoList(dtoList)
+                    .total(total)
+                    .pageRequestDto(pageRequestDto)
+                    .build();
+        } catch (Exception e) {
+            throw new DataAccessException("데이터 조회 중 오류가 발생했습니다.");
+        }
+    }
+
+    @Override
+    public PageResponseDto<TodoRequestDto> searchByTitle(PageRequestDto pageRequestDto) {
+        try {
+
+            List<TodoEntity> entitiyList = todoRepository.searchByTitle(pageRequestDto);
+
+            List<TodoRequestDto> dtoList = entitiyList.stream()
+                    .map(TodoRequestDto::new)
+                    .collect(Collectors.toList());
+            int total = todoRepository.getCountByTitle(pageRequestDto.getQuery());
+
+
+            return PageResponseDto.<TodoRequestDto>withAll()
+                    .dtoList(dtoList)
+                    .total(total)
+                    .pageRequestDto(pageRequestDto)
+                    .build();
+        } catch (Exception e) {
+            
+            throw new DataAccessException("데이터 조회 중 오류가 발생했습니다.");
+        }
+    }
+
     /**
      * TodoEntity를 TodoResponseDto로 변환
      * @param entity 변환할 TodoEntity 객체

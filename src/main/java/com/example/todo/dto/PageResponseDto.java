@@ -23,7 +23,9 @@ public class PageResponseDto<E> {
 
     private boolean prev; // 이전 버튼 활성화 여부
     private boolean next;// 다음 버튼 활성화 여부
-
+    // 검색 관련 필드
+    private String searchType;
+    private String query;
     private List<E> dtoList;
 
     @Builder(builderMethodName = "withAll")

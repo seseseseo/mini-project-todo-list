@@ -12,9 +12,14 @@
 <div class="container">
     <div class="header"><h1 style="text-align: center;">Todo-list</h1></div>
     <div class="search-container">
-        <form th:action="@{/todo}" method="post">
-            <input type="text" name="authorName" placeholder="작성자 이름 검색" class="search-input">
+        <form th:action="@{/todo}" method="get">
+            <select name = "searchType" class="search-type">
+                <option value="authorName" th:selected="${searchType == 'authorName'}">작성자</option>
+                <option value="title" th:selected="${searchType == 'title'}">제목</option>
+            </select>
+            <input type="text" name="query" placeholder="검색어를 입력하세요" class="search-input">
             <button type="submit">🔍</button>
+
         </form>
 
     </div>
@@ -48,19 +53,19 @@
         <ul>
             <!-- 이전 페이지 버튼 -->
             <li th:if="${prev}">
-                <a th:href="@{/todo(page=${currentPage - 1}, size=${size}, authorName=${authorName})}">&laquo; 이전</a>
+                <a th:href="@{/todo(page=${currentPage - 1}, size=${size}, searchType=${searchType}, query=${query})}">&laquo; 이전</a>
             </li>
 
             <!-- 페이지 번호 버튼 -->
-            <li th:each="pageNum : ${#numbers.sequence(startPage, endPage)}"
+            <li th:each="pageNum : ${#numbers.sequence(startPage, end)}"
                 th:class="${pageNum == currentPage} ? 'active'">
-                <a th:href="@{/todo(page=${pageNum}, size=${size}, authorName=${authorName})}"
+                <a th:href="@{/todo(page=${pageNum}, size=${size}, searchType=${searchType}, query=${query})}"
                    th:text="${pageNum}"></a>
             </li>
 
             <!-- 다음 페이지 버튼 -->
             <li th:if="${next}">
-                <a th:href="@{/todo(page=${currentPage + 1}, size=${size}, authorName=${authorName})}">다음 &raquo;</a>
+                <a th:href="@{/todo(page=${currentPage + 1}, size=${size},searchType=${searchType}, query=${query})}">다음 &raquo;</a>
             </li>
         </ul>
     </div>

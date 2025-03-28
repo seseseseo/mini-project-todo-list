@@ -30,31 +30,72 @@ public class TodoController {
      */
     @GetMapping
     public String getList(@Valid PageRequestDto pageRequestDto,
-                          @RequestParam(value = "authorName", required = false) String authorName,
+                          @RequestParam(value = "searchType", required = false) String searchType,
+                          @RequestParam(value = "query", required = false) String query,
                           BindingResult bindingResult, Model model) {
 
         log.info("페이지 요청: {}", pageRequestDto);
-        if(bindingResult.hasErrors()) {
+        log.info("검색 유형: {}", searchType);  // 💡 로그 추가
+        log.info("검색어: {}", query);
+        if (bindingResult.hasErrors()) {
             pageRequestDto = PageRequestDto.builder().build();
         }
-        // 작성자 이름이 있으면 페이지 요청 DTO에 추가
-        if (authorName != null && !authorName.isEmpty()) {
-            pageRequestDto.setAuthorName(authorName);
+        //조회가안되길래 이거 추가
+        if ((searchType == null || searchType.isEmpty()) && (query == null || query.trim().isEmpty())) {
+            log.info("검색어가 없다..");
+            PageResponseDto<TodoRequestDto> responseDto = todoService.getList(pageRequestDto);
+
+            model.addAttribute("responseDTO", responseDto.getDtoList());
+            model.addAttribute("currentPage", responseDto.getPage());
+            model.addAttribute("total", responseDto.getTotal());
+            model.addAttribute("size", responseDto.getSize());
+            model.addAttribute("endPage", responseDto.getEnd());
+            model.addAttribute("startPage", responseDto.getStart());
+            model.addAttribute("prev", responseDto.isPrev());
+            model.addAttribute("next", responseDto.isNext());
+
+
+            return "list";
         }
 
-        //서비스에서 리스트 가져오기
-        PageResponseDto<TodoRequestDto> responseDto = todoService.getList(pageRequestDto);
+        //  검색 유형  검색어 설정
+        pageRequestDto.setSearchType(searchType);
+        pageRequestDto.setQuery(query);
+
+        // 검색 유형에 따라 DTO 필드 설정
+        if ("authorName".equalsIgnoreCase(searchType)) {
+            pageRequestDto.setAuthorName(pageRequestDto.getAuthorName());
+        } else if ("title".equalsIgnoreCase(searchType)) {
+            pageRequestDto.setTitle(pageRequestDto.getTitle());
+        } else {
+            log.warn("유효하지 않은 검색 유형: {}", searchType);
+            return "redirect:/todo";
+        }
+
+        // 서비스에서 검색 결과 가져오기
+        PageResponseDto<TodoRequestDto> responseDto;
+
+        if ("authorName".equalsIgnoreCase(searchType)) {
+            responseDto = todoService.searchByAuthor(pageRequestDto);
+        } else if ("title".equalsIgnoreCase(searchType)) {
+            responseDto = todoService.searchByTitle(pageRequestDto);
+        } else {
+            responseDto = todoService.getList(pageRequestDto);
+        }
+        //그거 .... 총 페이지 수
 
         model.addAttribute("responseDTO", responseDto.getDtoList());
         model.addAttribute("currentPage", responseDto.getPage());
         model.addAttribute("total", responseDto.getTotal());
         model.addAttribute("size", responseDto.getSize());
-        model.addAttribute("endPage", responseDto.getEnd());  // 마지막 페이지
-        model.addAttribute("startPage", responseDto.getStart()); // 첫 페이지
+        model.addAttribute("endPage", responseDto.getEnd());
+        model.addAttribute("startPage", responseDto.getStart());
         model.addAttribute("prev", responseDto.isPrev());
         model.addAttribute("next", responseDto.isNext());
-        model.addAttribute("authorName", authorName);
-        log.info("컨트롤러에서 전달할 데이터 개수: " + responseDto.getDtoList().size());
+        model.addAttribute("searchType", searchType);
+        model.addAttribute("query", query);
+        model.addAttribute("end",responseDto.getEnd());
+        log.info("검색 결과 페이지로 이동합니다. 데이터 개수: ", responseDto.getDtoList().size());
         return "list";
     }
     /**
@@ -69,6 +110,7 @@ public class TodoController {
     }
 
 
+
     @PostMapping
     public String searchByAuthorName(@RequestParam("authorName") String authorName) {
         try {
@@ -80,7 +122,6 @@ public class TodoController {
             return "redirect:/todo";
         }
     }
-
      /*GET 할일 등록 페이지
      * 새로운 일정 등록할 때 사용하는 register.html 반환
     */

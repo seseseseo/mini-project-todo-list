@@ -17,4 +17,7 @@ public interface TodoService {
     boolean checkPassword(int id, String password);
     PageResponseDto<TodoRequestDto> getList(PageRequestDto pageRequestDto);
     int getCount(PageRequestDto pageRequestDto);
+
+    PageResponseDto<TodoRequestDto> searchByAuthor(PageRequestDto pageRequestDto);
+    PageResponseDto<TodoRequestDto> searchByTitle(PageRequestDto pageRequestDto);
 }
